@@ -1,3 +1,7 @@
+### WARNING ###
+
+This is a work in progress and is not yet functional.
+
 # Entry Type #
 
 A dropdown fieldtype that shows/hides other fields on the publish page.
