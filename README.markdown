@@ -1,7 +1,3 @@
-### WARNING ###
-
-This is a work in progress and is not yet functional.
-
 # Entry Type #
 
 A dropdown fieldtype that shows/hides other fields on the publish page.
@@ -13,3 +9,15 @@ This can be used to create a Tumblr-like experience. For example, you first add 
 ## Installation
 
 * Copy the /system/expressionengine/third_party/entry_type/ folder to your /system/expressionengine/third_party/ folder
+
+## Usage
+	{exp:channel:entries}
+	{title}<br />
+	{if your_entry_type_field == 'Link'}
+		{link_url}
+	{if:else your_entry_type_field == 'Video'}
+		{video}
+	{if:elseif your_entry_type_field == 'Image'}
+		{image}
+	{/if}
+	{/exp:channel:entries}
