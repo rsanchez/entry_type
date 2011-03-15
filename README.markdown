@@ -8,9 +8,11 @@ This can be used to create a Tumblr-like experience. For example, you first add 
 
 ## Installation
 
-* Copy the /system/expressionengine/third_party/entry_type/ folder to your /system/expressionengine/third_party/ folder
+* Download the addon and rename the folder to entry_title
+* Copy to system/expressionengine/third_party
 
 ## Usage
+
 	{exp:channel:entries}
 	{title}<br />
 	{if your_entry_type_field == 'Link'}
