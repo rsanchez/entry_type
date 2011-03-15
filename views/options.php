@@ -1,4 +1,4 @@
-<table width="100%" id="entry_type_options">
+<table width="100%" id="entry_type_options" class="mainTable">
 	<thead>
 		<tr>
 			<th><?=lang('type')?></th>
