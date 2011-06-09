@@ -8,6 +8,21 @@ class Entry_type_ft extends EE_Fieldtype
 	);
 
 	public $has_array_data = FALSE;
+	
+	function Entry_type_ft()
+	{
+		parent::EE_Fieldtype();
+		
+		/** ----------------------------------------
+		/**	 Prepare Cache
+		/** ----------------------------------------*/
+
+		if (! isset($this->EE->session->cache['entry_type']))
+		{
+			$this->EE->session->cache['entry_type'] = array('includes' => array());
+		}
+		$this->cache =& $this->EE->session->cache['entry_type'];
+	}
 
 	public function display_field($data)
 	{
@@ -50,12 +65,47 @@ class Entry_type_ft extends EE_Fieldtype
 					return $(this).attr('id').match(/^hold_field_\d+$/);
 				}).hide();
 				for (i in EE.entry_type['".$this->field_name."'][value]) {
-					$('div#hold_field_'+EE.entry_type['".$this->field_name."'][value][i]).show();
+					$('div#hold_field_'+EE.entry_type['".$this->field_name."'][value][i]).show().width('100%');
 				}
 			});
+			
+			$('select[name=".$this->field_name."]').trigger('change');
 		");
+		
+		$field_id = '';
+		
+		if (! isset($this->cache['pill_installed']))
+		{
+		    $exists = $this->EE->db->get_where('fieldtypes', array('name' => 'pt_pill'));
+		    $this->cache['pill_installed'] = $exists->num_rows() ? true : false; 
+		}
+		
+		// If PT Pill is installed use it's style because it's purdy.
+		if($this->cache['pill_installed'])
+		{
+			$this->EE->cp->add_to_head('<link rel="stylesheet" type="text/css" href="'.$this->_theme_url().'styles/pt_pill.css" />');
+			$this->EE->cp->add_to_foot('<script type="text/javascript" src="'.$this->_theme_url().'scripts/pt_pill.js"></script>');
 
-		return form_dropdown($this->field_name, $options, $data);
+			$field_id = str_replace(array('[', ']'), array('_', ''), $this->field_name);
+			$this->EE->cp->add_to_foot('<script type="text/javascript">new ptPill(jQuery("#'.$field_id.'"));</script>');
+		}
+
+		return form_dropdown($this->field_name, $options, $data, 'id="'.$field_id.'"');
+	}
+	
+	/**
+	 * Theme URL
+	 */
+	private function _theme_url()
+	{
+		if (! isset($this->cache['theme_url']))
+		{
+			$theme_folder_url = $this->EE->config->item('theme_folder_url');
+			if (substr($theme_folder_url, -1) != '/') $theme_folder_url .= '/';
+			$this->cache['theme_url'] = $theme_folder_url.'third_party/pt_pill/';
+		}
+
+		return $this->cache['theme_url'];
 	}
 
 	public function display_settings($data)
