@@ -72,11 +72,16 @@ class Entry_type_ft extends EE_Fieldtype
 			$('select[name=".$this->field_name."]').trigger('change');
 		");
 		
-		$exists = $this->EE->db->get_where('fieldtypes', array('name' => 'pt_pill'));
 		$field_id = '';
 		
+		if (! isset($this->cache['pill_installed']))
+		{
+		    $exists = $this->EE->db->get_where('fieldtypes', array('name' => 'pt_pill'));
+		    $this->cache['pill_installed'] = $exists->num_rows() ? true : false; 
+		}
+		
 		// If PT Pill is installed use it's style because it's purdy.
-		if($exists->num_rows() == 1)
+		if($this->cache['pill_installed'])
 		{
 			$this->EE->cp->add_to_head('<link rel="stylesheet" type="text/css" href="'.$this->_theme_url().'styles/pt_pill.css" />');
 			$this->EE->cp->add_to_foot('<script type="text/javascript" src="'.$this->_theme_url().'scripts/pt_pill.js"></script>');
