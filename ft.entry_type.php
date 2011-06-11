@@ -33,8 +33,7 @@ class Entry_type_ft extends EE_Fieldtype
 	public function display_field($data)
 	{
 		$fields = array();
-
-		//$options = array('' => '---');
+		$options = array();
 
 		if (empty($this->settings['hide_fields']))
 		{
