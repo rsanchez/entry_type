@@ -2,16 +2,11 @@
 	<thead>
 		<tr>
 			<th><?=lang('type')?></th>
-			<th><?=lang('hide_fields')?></th>
+			<th><?=lang('Hide Fields')?></th>
+			<th style="width:1%;">&nbsp;</th>
 		</tr>
 	</thead>
 	<tbody>
-		<?php /*
-		<tr>
-			<td><?=lang('blank')?></td>
-			<td><?=form_multiselect('entry_type_blank_hide_fields[]', $fields, $blank_hide_fields)?></td>
-		</tr>
-		*/ ?>
 <?php $i = 0; ?>
 <?php foreach ($options as $type => $hide_fields) : ?>
 <?=$this->load->view('option_row', array('i' => (string) $i, 'type' => $type, 'hide_fields' => $hide_fields, 'fields' => $fields), TRUE)?>

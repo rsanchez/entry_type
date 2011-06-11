@@ -85,11 +85,11 @@ class Entry_type_ft extends EE_Fieldtype
 			}).trigger('change');
 		");
 		
-		if (isset($this->settings['input']) && $fieldtype = $this->EE->api_channel_fields->setup_handler($this->settings['input'], TRUE))
+		if (isset($this->settings['fieldtype']) && $fieldtype = $this->EE->api_channel_fields->setup_handler($this->settings['fieldtype'], TRUE))
 		{
 			$fieldtype->field_name = $this->field_name;
 			$fieldtype->field_id = $this->field_id;
-			$fieldtype->settings = $this->fieldtypes[$this->settings['input']];
+			$fieldtype->settings = $this->fieldtypes[$this->settings['fieldtype']];
 			$fieldtype->settings['field_list_items'] = $fieldtype->settings['options'] = $options;
 			
 			return $fieldtype->display_field($data);
@@ -101,6 +101,8 @@ class Entry_type_ft extends EE_Fieldtype
 	public function display_settings($data)
 	{
 		$this->EE->load->helper('array');
+		
+		$this->EE->cp->add_js_script(array('ui' => array('sortable')));
 		
 		$this->EE->load->model('field_model');
 
@@ -163,7 +165,7 @@ class Entry_type_ft extends EE_Fieldtype
 		
 		$this->EE->table->add_row(array(
 			'Field Type',
-			form_dropdown('entry_type_input', $types, element('input', $data))
+			form_dropdown('entry_type_fieldtype', $types, element('fieldtype', $data))
 		));
 
 		$this->EE->table->add_row(array(
@@ -192,7 +194,7 @@ class Entry_type_ft extends EE_Fieldtype
 		
 		$settings['blank_hide_fields'] = (isset($data['entry_type_blank_hide_fields'])) ? $data['entry_type_blank_hide_fields'] : array();
 		
-		$settings['input'] = (isset($data['entry_type_input'])) ? $data['entry_type_input'] : 'select';
+		$settings['fieldtype'] = (isset($data['entry_type_fieldtype'])) ? $data['entry_type_fieldtype'] : 'select';
 
 		return $settings;
 	}
