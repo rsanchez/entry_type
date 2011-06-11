@@ -99,7 +99,7 @@ class Entry_type_ft extends EE_Fieldtype
 
 	public function display_settings($data)
 	{
-		$this->EE->load->helper('array');
+		$this->EE->load->helper(array('array', 'html'));
 		
 		$this->EE->cp->add_js_script(array('ui' => array('sortable')));
 		
