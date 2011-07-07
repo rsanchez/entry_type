@@ -33,7 +33,7 @@ class Entry_type_ft extends EE_Fieldtype
 	public function display_field($data)
 	{		
 		$fields = array();
-		$options = array('None');
+		$options = array(lang('None'));
 
 		if (empty($this->settings['hide_fields']))
 		{
@@ -96,7 +96,7 @@ class Entry_type_ft extends EE_Fieldtype
 			return $fieldtype->display_field($data);
 		}
 		
-		return form_dropdown($this->field_name, $options, 'Event');
+		return form_dropdown($this->field_name, $options, $data);
 	}
 
 	public function display_settings($data)
