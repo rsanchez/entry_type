@@ -31,9 +31,9 @@ class Entry_type_ft extends EE_Fieldtype
 	);
 
 	public function display_field($data)
-	{
+	{		
 		$fields = array();
-		$options = array();
+		$options = array(lang('None'));
 
 		if (empty($this->settings['hide_fields']))
 		{
@@ -83,6 +83,8 @@ class Entry_type_ft extends EE_Fieldtype
 				}
 			}).trigger('change');
 		");
+
+		$data = (empty($data) && isset($this->settings['entry_type_default_type'])) ? $this->settings['entry_type_default_type'] : $data;
 		
 		if (isset($this->settings['fieldtype']) && $fieldtype = $this->EE->api_channel_fields->setup_handler($this->settings['fieldtype'], TRUE))
 		{
@@ -93,12 +95,12 @@ class Entry_type_ft extends EE_Fieldtype
 			
 			return $fieldtype->display_field($data);
 		}
-
+		
 		return form_dropdown($this->field_name, $options, $data);
 	}
 
 	public function display_settings($data)
-	{
+	{		
 		$this->EE->load->helper(array('array', 'html'));
 		
 		$this->EE->cp->add_js_script(array('ui' => array('sortable')));
@@ -108,6 +110,8 @@ class Entry_type_ft extends EE_Fieldtype
 		$query = $this->EE->field_model->get_fields($this->EE->input->get('group_id', TRUE));
 
 		$vars['fields'] = array();
+		
+		$vars['default_type'] = (isset($data['entry_type_default_type'])) ? $data['entry_type_default_type'] : '';
 
 		foreach ($query->result() as $row)
 		{
@@ -160,11 +164,14 @@ class Entry_type_ft extends EE_Fieldtype
 			{
 				$types[$type] = $row['name'];
 			}
-		}
+		}		
+		
 		
 		$this->EE->table->add_row(array(
 			'Field Type',
-			form_dropdown('entry_type_fieldtype', $types, element('fieldtype', $data))
+			form_dropdown('entry_type_fieldtype', $types, element('fieldtype', $data)).
+			NBS.NBS.NBS.NBS.
+			'<label>'.form_radio('entry_type_default_type', '', ($vars['default_type'] == '') ? TRUE : FALSE).NBS.lang('No Default').'</label>'
 		));
 
 		$this->EE->table->add_row(array(
@@ -178,12 +185,13 @@ class Entry_type_ft extends EE_Fieldtype
 	}
 
 	public function save_settings($data)
-	{
+	{		
+		
 		if ( ! isset($data['entry_type_options']))
 		{
 			return;
 		}
-
+		
 		$settings['hide_fields'] = array();
 
 		foreach ($data['entry_type_options'] as $i => $option)
@@ -195,6 +203,8 @@ class Entry_type_ft extends EE_Fieldtype
 		
 		$settings['fieldtype'] = (isset($data['entry_type_fieldtype'])) ? $data['entry_type_fieldtype'] : 'select';
 
+		$settings['entry_type_default_type'] = (isset($data['entry_type_default_type'])) ? $data['entry_type_default_type'] : '';
+		
 		return $settings;
 	}
 }

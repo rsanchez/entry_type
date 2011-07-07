@@ -3,6 +3,7 @@
 		<tr>
 			<th><?=lang('type')?></th>
 			<th><?=lang('Hide Fields')?></th>
+			<th><?=lang('Default')?></th>
 			<th style="width:1%;">&nbsp;</th>
 		</tr>
 	</thead>
