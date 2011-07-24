@@ -20,9 +20,9 @@ $.entry_type = {
 };
 
 $('#entry_type_add_row').click($.entry_type.add_row);
-$('.entry_type_remove_row').click(function(){
+$('.entry_type_remove_row').live('click', function(){
 	if (confirm('Are you sure you want to delete this Type?')) {
-		$.entry_type.remove_row($(this).index());
+		$.entry_type.remove_row($(this).parent().index());
 	}
 });
 $('#entry_type_options tbody').sortable({
