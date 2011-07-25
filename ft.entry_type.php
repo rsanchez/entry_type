@@ -6,8 +6,8 @@
 class Entry_type_ft extends EE_Fieldtype
 {
 	public $info = array(
-		'name'		=> 'Entry Type',
-		'version'	=> '1.0.1'
+		'name' => 'Entry Type',
+		'version' => '1.0.2',
 	);
 
 	public $has_array_data = FALSE;
@@ -34,6 +34,7 @@ class Entry_type_ft extends EE_Fieldtype
 	{
 		$fields = array();
 		$options = array();
+		$widths = array();
 
 		if (empty($this->settings['hide_fields']))
 		{
@@ -50,39 +51,63 @@ class Entry_type_ft extends EE_Fieldtype
 		{
 			$this->EE->session->cache['entry_type']['display_field'] = TRUE;
 			
-			if (REQ !== 'CP')
+			//fetch field widths from publish layout
+			$this->EE->load->model('member_model');
+			
+			$layout_group = (is_numeric($this->EE->input->get_post('layout_preview'))) ? $this->EE->input->get_post('layout_preview') : $this->EE->session->userdata('group_id');
+			
+			$layout_info = $this->EE->member_model->get_group_layout($layout_group, $this->EE->input->get_post('channel_id'));
+			
+			if ( ! empty($layout_info))
 			{
-				$this->EE->cp->add_to_head('<script type="text/javascript">EE.entry_type = {};</script>');
-			}
-			else
-			{
-				$this->EE->javascript->set_global('entry_type', array());
+				foreach ($layout_info as $tab => $tab_fields)
+				{
+					foreach ($tab_fields as $field_name => $field_options)
+					{
+						if (strncmp($field_name, 'field_id_', 9) === 0 && isset($field_options['width']))
+						{
+							$widths[substr($field_name, 9)] = $field_options['width'];
+						}
+					}
+				}
 			}
 			
-			//add all publish fields initial widths as data attribute
-			$this->EE->javascript->output("$('div.publish_field').each(function(){
-				$(this).attr('data-width', $(this).css('width'));
-			});");
+			$this->EE->cp->add_to_head('
+			<script type="text/javascript">
+			EE.entryType = {
+				fields: {},
+				widths: '.$this->EE->javascript->generate_json($widths).',
+				change: function() {
+					var value;
+					$("div[id*=hold_field_]").not("#hold_field_"+$(this).data("fieldId")).filter(function(){
+						return $(this).attr("id").match(/^hold_field_\d+$/);
+					}).each(function(){
+						$(this).show().width($(this).data("width"));
+					});
+					for (fieldName in EE.entryType.fields) {
+						value = $(":input[name=\'"+fieldName+"\']").val();
+						for (fieldId in EE.entryType.fields[fieldName][value]) {
+							$("div#hold_field_"+EE.entryType.fields[fieldName][value][fieldId]).hide();
+						}
+					}
+				},
+				addField: function(data) {
+					this.fields[data.fieldName] = data.fields;
+					$(":input[name=\'"+data.fieldName+"\']").data("fieldId", data.fieldId).change(EE.entryType.change).trigger("change");
+				},
+				init: function() {
+					for (fieldId in EE.entryType.widths) {
+						$("div#hold_field_"+fieldId).data("width", EE.entryType.widths[fieldId]);
+					}
+				}
+				
+			};
+			</script>');
+			
+			$this->EE->javascript->output("EE.entryType.init();");
 		}
 
-		$this->EE->javascript->output('EE.entry_type["'.$this->field_name.'"] = '.$this->EE->javascript->generate_json($fields, TRUE).';');
-
-		$this->EE->javascript->output("
-			$(':input[name=\"".$this->field_name."\"]').change(function(){
-				if ( ! $(this).val()) {
-					return;
-				}
-				var value = $(this).val();
-				$('div[id*=hold_field_]').not('#hold_field_".$this->field_id."').filter(function(){
-					return $(this).attr('id').match(/^hold_field_\d+$/);
-				}).each(function(){
-					$(this).show().width($(this).attr('data-width'));
-				});
-				for (i in EE.entry_type['".$this->field_name."'][value]) {
-					$('div#hold_field_'+EE.entry_type['".$this->field_name."'][value][i]).hide();
-				}
-			}).trigger('change');
-		");
+		$this->EE->javascript->output('EE.entryType.addField('.$this->EE->javascript->generate_json(array('fieldName' => $this->field_name, 'fieldId' => $this->field_id, 'fields' => $fields), TRUE).');');
 		
 		if (isset($this->settings['fieldtype']) && $fieldtype = $this->EE->api_channel_fields->setup_handler($this->settings['fieldtype'], TRUE))
 		{
@@ -99,6 +124,8 @@ class Entry_type_ft extends EE_Fieldtype
 
 	public function display_settings($data)
 	{
+		$this->EE->lang->loadfile('entry_type', 'entry_type');
+		
 		$this->EE->load->helper(array('array', 'html'));
 		
 		$this->EE->cp->add_js_script(array('ui' => array('sortable')));
@@ -163,12 +190,12 @@ class Entry_type_ft extends EE_Fieldtype
 		}
 		
 		$this->EE->table->add_row(array(
-			'Field Type',
+			lang('field_type'),
 			form_dropdown('entry_type_fieldtype', $types, element('fieldtype', $data))
 		));
 
 		$this->EE->table->add_row(array(
-			'Types',
+			lang('types'),
 			$this->EE->load->view('options', $vars, TRUE)
 		));
 
