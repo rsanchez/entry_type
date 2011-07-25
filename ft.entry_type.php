@@ -6,8 +6,8 @@
 class Entry_type_ft extends EE_Fieldtype
 {
 	public $info = array(
-		'name'		=> 'Entry Type',
-		'version'	=> '1.0.1'
+		'name' => 'Entry Type',
+		'version' => '1.0.2',
 	);
 
 	public $has_array_data = FALSE;
@@ -91,8 +91,9 @@ class Entry_type_ft extends EE_Fieldtype
 						}
 					}
 				},
-				addField: function(fieldName, fieldData) {
-					this.fields[fieldName] = fieldData;
+				addField: function(data) {
+					this.fields[data.fieldName] = data.fields;
+					$(":input[name=\'"+data.fieldName+"\']").data("fieldId", data.fieldId).change(EE.entryType.change).trigger("change");
 				},
 				init: function() {
 					for (fieldId in EE.entryType.widths) {
@@ -106,10 +107,7 @@ class Entry_type_ft extends EE_Fieldtype
 			$this->EE->javascript->output("EE.entryType.init();");
 		}
 
-
-		$this->EE->javascript->output('EE.entryType.addField("'.$this->field_name.'", '.$this->EE->javascript->generate_json($fields, TRUE).');');
-		
-		$this->EE->javascript->output("$(':input[name=\"".$this->field_name."\"]').data('fieldId', '".$this->field_id."').change(EE.entryType.change).trigger('change');");
+		$this->EE->javascript->output('EE.entryType.addField('.$this->EE->javascript->generate_json(array('fieldName' => $this->field_name, 'fieldId' => $this->field_id, 'fields' => $fields), TRUE).');');
 		
 		if (isset($this->settings['fieldtype']) && $fieldtype = $this->EE->api_channel_fields->setup_handler($this->settings['fieldtype'], TRUE))
 		{
@@ -126,6 +124,8 @@ class Entry_type_ft extends EE_Fieldtype
 
 	public function display_settings($data)
 	{
+		$this->EE->lang->loadfile('entry_type', 'entry_type');
+		
 		$this->EE->load->helper(array('array', 'html'));
 		
 		$this->EE->cp->add_js_script(array('ui' => array('sortable')));
@@ -190,12 +190,12 @@ class Entry_type_ft extends EE_Fieldtype
 		}
 		
 		$this->EE->table->add_row(array(
-			'Field Type',
+			lang('field_type'),
 			form_dropdown('entry_type_fieldtype', $types, element('fieldtype', $data))
 		));
 
 		$this->EE->table->add_row(array(
-			'Types',
+			lang('types'),
 			$this->EE->load->view('options', $vars, TRUE)
 		));
 

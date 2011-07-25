@@ -2,7 +2,7 @@
 	<thead>
 		<tr>
 			<th><?=lang('type')?></th>
-			<th><?=lang('Hide Fields')?></th>
+			<th><?=lang('hide_fields')?></th>
 			<th style="width:1%;">&nbsp;</th>
 		</tr>
 	</thead>
@@ -14,4 +14,4 @@
 <?php endforeach; ?>
 	</tbody>
 </table>
-<p><a href="javascript:void(0);" id="entry_type_add_row">+ Add Type</a></p>
+<p><a href="javascript:void(0);" id="entry_type_add_row"><?=lang('add_type')?></a></p>
