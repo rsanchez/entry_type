@@ -7,7 +7,7 @@ class Entry_type_ft extends EE_Fieldtype
 {
 	public $info = array(
 		'name' => 'Entry Type',
-		'version' => '1.0.2',
+		'version' => '1.0.3',
 	);
 
 	public $has_array_data = FALSE;
@@ -153,6 +153,11 @@ class Entry_type_ft extends EE_Fieldtype
 			
 			foreach ($data['options'] as $type => $show_fields)
 			{
+				if ( ! is_array($show_fields))
+				{
+					$show_fields = array();
+				}
+				
 				$data['hide_fields'][$type] = array();
 				
 				foreach (array_keys($vars['fields']) as $field_id)
