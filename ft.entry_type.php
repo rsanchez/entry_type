@@ -96,7 +96,7 @@ class Entry_type_ft extends EE_Fieldtype
 					}).each(function(){
 						var match = $(this).attr("id").match(/^hold_field_(\d+)$/);
 						$(this).width($(this).data("width"));
-						if ( ! $.inArray(match[1], EE.entryType.invisible)) {
+						if ($.inArray(match[1], EE.entryType.invisible) === -1) {
 							$(this).show();
 						}
 					});
