@@ -144,14 +144,16 @@ class Entry_type_ft extends EE_Fieldtype
 				fields: {},
 				widths: '.$this->EE->javascript->generate_json($widths).',
 				change: function() {
-					var value;
+					var value, input;
 					$("div[id*=hold_field_]").not("#hold_field_"+$(this).data("fieldId")).filter(function(){
 						return $(this).attr("id").match(/^hold_field_\d+$/);
 					}).each(function(){
 						$(this).show().width($(this).data("width"));
 					});
 					for (fieldName in EE.entryType.fields) {
-						value = $(":input[name=\'"+fieldName+"\']").val();
+						input = $(":input[name=\'"+fieldName+"\']");
+						if ( input.is(":radio") ) input = input.filter(":checked");
+						value = input.val();
 						for (fieldId in EE.entryType.fields[fieldName][value]) {
 							$("div#hold_field_"+EE.entryType.fields[fieldName][value][fieldId]).hide();
 						}
