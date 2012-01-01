@@ -7,10 +7,10 @@ class Entry_type_ft extends EE_Fieldtype
 {
 	public $info = array(
 		'name' => 'Entry Type',
-		'version' => '1.0.3',
+		'version' => '1.0.4',
 	);
 
-	public $has_array_data = FALSE;
+	public $has_array_data = TRUE;
 	
 	protected $fieldtypes = array(
 		'select' => array(
@@ -29,23 +29,89 @@ class Entry_type_ft extends EE_Fieldtype
 		),
 		'pt_pill' => array(),
 	);
+	
+	public function replace_tag($data, $params = array(), $tagdata = FALSE)
+	{
+		if ($tagdata && isset($params['all_options']) && $params['all_options'] === 'yes')
+		{
+			return $this->replace_all_options($data, $params, $tagdata);
+		}
+		
+		return $data;
+	}
+	
+	public function replace_label($data, $params = array(), $tagdata = FALSE)
+	{
+		$this->convert_old_settings();
+		
+		foreach ($this->settings['type_options'] as $value => $option)
+		{
+			if ($data == $value)
+			{
+				return ( ! empty($option['label'])) ? $option['label'] : $value;
+			}
+		}
+		
+		return $data;
+	}
+	
+	public function replace_selected($data, $params = array(), $tagdata = FALSE)
+	{
+		if ( ! isset($params['option']))
+		{
+			return 0;
+		}
+		
+		$this->convert_old_settings();
+		
+		return (int) ($data == $params['option']);
+	}
+	
+	public function replace_all_options($data, $params = array(), $tagdata = FALSE)
+	{
+		$this->convert_old_settings();
+		
+		$vars = array();
+		
+		foreach ($this->settings['type_options'] as $value => $option)
+		{
+			$label = ( ! empty($option['label'])) ? $option['label'] : $value;
+			
+			$vars[] = array(
+				'value' => $value,
+				'option' => $value,
+				'option_value' => $value,
+				'option_name' => $label,
+				'option_label' => $label,
+				'label' => $label,
+				'selected' => (int) ($data == $value),
+			);
+		}
+		
+		if ( ! $vars)
+		{
+			$vars[] = array();
+		}
+		
+		return $this->EE->TMPL->parse_variables($tagdata, $vars);
+	}
 
 	public function display_field($data)
 	{
+		$this->convert_old_settings();
+		
 		$fields = array();
+		
 		$options = array();
+		
 		$widths = array();
 		$invisible = array();
 
-		if (empty($this->settings['hide_fields']))
+		foreach ($this->settings['type_options'] as $value => $row)
 		{
-			$this->settings['hide_fields'] = array();
-		}
-
-		foreach ($this->settings['hide_fields'] as $name => $field_ids)
-		{
-			$fields[$name] = $field_ids;
-			$options[$name] = $name;
+			$fields[$value] = $row['hide_fields'];
+			
+			$options[$value] = ($row['label']) ? $row['label'] : $value;
 		}
 		
 		if ( ! isset($this->EE->session->cache['entry_type']['display_field']))
@@ -116,7 +182,6 @@ class Entry_type_ft extends EE_Fieldtype
 						$("div#hold_field_"+fieldId).data("width", EE.entryType.widths[fieldId]);
 					}
 				}
-				
 			};
 			</script>');
 			
@@ -137,8 +202,58 @@ class Entry_type_ft extends EE_Fieldtype
 
 		return form_dropdown($this->field_name, $options, $data);
 	}
+	
+	private function convert_old_settings($settings = NULL)
+	{
+		if (is_null($settings))
+		{
+			$settings = $this->settings;
+		}
+		
+		//backwards compat
+		if (isset($settings['options']))
+		{
+			$settings['hide_fields'] = array();
+			
+			foreach ($settings['options'] as $type => $show_fields)
+			{
+				if ( ! is_array($show_fields))
+				{
+					$show_fields = array();
+				}
+				
+				$settings['hide_fields'][$type] = array();
+				
+				foreach (array_keys($vars['fields']) as $field_id)
+				{
+					if ( ! in_array($field_id, $show_fields))
+					{
+						$settings['hide_fields'][$type][] = $field_id;
+					}
+				}
+			}
+		}
+		
+		// more backwards compat
+		if (isset($settings['hide_fields']))
+		{
+			$settings['type_options'] = array();
+			
+			foreach ($settings['hide_fields'] as $value => $hide_fields)
+			{
+				$settings['type_options'][$value] = array(
+					'hide_fields' => $hide_fields,
+					'label' => $value,
+				);
+			}
+			
+			unset($settings['hide_fields']);
+		}
+		
+		$this->settings = $settings;
+	}
 
-	public function display_settings($data)
+	public function display_settings($settings)
 	{
 		$this->EE->lang->loadfile('entry_type', 'entry_type');
 		
@@ -162,33 +277,23 @@ class Entry_type_ft extends EE_Fieldtype
 			$vars['fields'][$row->field_id] = $row->field_label;
 		}
 		
-		//backwards compat
-		if (isset($data['options']))
+		$this->convert_old_settings($settings);
+		
+		if (empty($settings['type_options']))
 		{
-			$data['hide_fields'] = array();
-			
-			foreach ($data['options'] as $type => $show_fields)
-			{
-				if ( ! is_array($show_fields))
-				{
-					$show_fields = array();
-				}
-				
-				$data['hide_fields'][$type] = array();
-				
-				foreach (array_keys($vars['fields']) as $field_id)
-				{
-					if ( ! in_array($field_id, $show_fields))
-					{
-						$data['hide_fields'][$type][] = $field_id;
-					}
-				}
-			}
+			$vars['type_options'] = array(
+				'' => array(
+					'hide_fields' => array(),
+					'label' => '',
+				),
+			);
+		}
+		else
+		{
+			$vars['type_options'] = $settings['type_options'];
 		}
 		
-		$vars['options'] = (isset($data['hide_fields'])) ? $data['hide_fields'] : array('' => array());
-		
-		$vars['blank_hide_fields'] = (isset($data['blank_hide_fields'])) ? $data['blank_hide_fields'] : array();
+		$vars['blank_hide_fields'] = (isset($settings['blank_hide_fields'])) ? $settings['blank_hide_fields'] : array();
 		
 		$this->EE->load->library('api');
 		
@@ -212,7 +317,7 @@ class Entry_type_ft extends EE_Fieldtype
 		
 		$this->EE->table->add_row(array(
 			lang('field_type'),
-			form_dropdown('entry_type_fieldtype', $types, element('fieldtype', $data))
+			form_dropdown('entry_type_fieldtype', $types, element('fieldtype', $settings))
 		));
 
 		$this->EE->table->add_row(array(
@@ -220,9 +325,42 @@ class Entry_type_ft extends EE_Fieldtype
 			$this->EE->load->view('options', $vars, TRUE)
 		));
 
-		$row_template = preg_replace('/[\r\n\t]/', '', $this->EE->load->view('option_row', array('i' => '{{INDEX}}', 'type' => '', 'hide_fields' => array(), 'fields' => $vars['fields']), TRUE));
+		$row_template = preg_replace('/[\r\n\t]/', '', $this->EE->load->view('option_row', array('i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => array(), 'fields' => $vars['fields']), TRUE));
 
-		$this->EE->javascript->output($this->EE->load->view('js', array('row_template' => str_replace("'", "\'", $row_template)), TRUE));
+		$this->EE->javascript->output('
+			EE.entryTypeSettings = {
+				rowTemplate: '.$this->EE->javascript->generate_json($row_template).',
+				addRow: function() {
+					$("#entry_type_options tbody").append(EE.entryTypeSettings.rowTemplate.replace(/{{INDEX}}/g, $("#entry_type_options tbody tr").length));
+				},
+				removeRow: function(index) {
+					$("#entry_type_options tbody tr").eq(index).remove();
+					EE.entryTypeSettings.orderRows();
+				},
+				orderRows: function() {
+					$("#entry_type_options tbody tr").each(function(index){
+						$(this).find(":input").each(function(){
+							var match = $(this).attr("name").match(/^entry_type_options\[\d+\]\[(.*?)\]$/);
+							if (match) {
+								$(this).attr("name", "entry_type_options["+index+"]["+match[1]+"]");
+							}
+						});
+					});
+				}
+			};
+			
+			$("#entry_type_add_row").click(EE.entryTypeSettings.addRow);
+			$(".entry_type_remove_row").live("click", function(){
+				if (confirm("'.lang('confirm_delete_type').'")) {
+					EE.entryTypeSettings.removeRow($(this).parents("tbody").find(".entry_type_remove_row").index(this));
+				}
+			});
+			$("#entry_type_options tbody").sortable({
+				stop: function(e, ui) {
+					EE.entryTypeSettings.orderRows();
+				}
+			}).children("tr").css({cursor:"move"});
+		');
 	}
 
 	public function save_settings($data)
@@ -231,18 +369,35 @@ class Entry_type_ft extends EE_Fieldtype
 		{
 			return;
 		}
-
-		$settings['hide_fields'] = array();
-
-		foreach ($data['entry_type_options'] as $i => $option)
+		
+		$settings['type_options'] = array();
+		
+		if (isset($data['entry_type_options']) && is_array($data['entry_type_options']))
 		{
-			$settings['hide_fields'][$option['type']] = (isset($option['hide_fields'])) ? $option['hide_fields'] : array();
+			foreach ($data['entry_type_options'] as $row)
+			{
+				if ( ! isset($row['value']))
+				{
+					continue;
+				}
+				
+				$value = $row['value'];
+				
+				unset($row['value']);
+				
+				if (empty($row['label']))
+				{
+					$row['label'] = $value;
+				}
+				
+				$settings['type_options'][$value] = $row;
+			}
 		}
 		
 		$settings['blank_hide_fields'] = (isset($data['entry_type_blank_hide_fields'])) ? $data['entry_type_blank_hide_fields'] : array();
 		
 		$settings['fieldtype'] = (isset($data['entry_type_fieldtype'])) ? $data['entry_type_fieldtype'] : 'select';
-
+		
 		return $settings;
 	}
 }
