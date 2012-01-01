@@ -1,15 +1,16 @@
 <table width="100%" id="entry_type_options" class="mainTable">
 	<thead>
 		<tr>
-			<th><?=lang('type')?></th>
+			<th><?=lang('type_value')?></th>
+			<th><?=lang('type_label')?></th>
 			<th><?=lang('hide_fields')?></th>
 			<th style="width:1%;">&nbsp;</th>
 		</tr>
 	</thead>
 	<tbody>
 <?php $i = 0; ?>
-<?php foreach ($options as $type => $hide_fields) : ?>
-<?=$this->load->view('option_row', array('i' => (string) $i, 'type' => $type, 'hide_fields' => $hide_fields, 'fields' => $fields), TRUE)?>
+<?php foreach ($type_options as $value => $data) : ?>
+<?=$this->load->view('option_row', array('i' => (string) $i, 'value' => $value, 'label' => $data['label'], 'hide_fields' => $data['hide_fields'], 'fields' => $fields), TRUE)?>
 <?php $i++; ?>
 <?php endforeach; ?>
 	</tbody>
