@@ -7,7 +7,7 @@ class Entry_type_ft extends EE_Fieldtype
 {
 	public $info = array(
 		'name' => 'Entry Type',
-		'version' => '1.0.4',
+		'version' => '1.0.5',
 	);
 
 	public $has_array_data = TRUE;
@@ -176,17 +176,45 @@ class Entry_type_ft extends EE_Fieldtype
 
 		$this->EE->javascript->output('EE.entryType.addField('.$this->EE->javascript->generate_json(array('fieldName' => $this->field_name, 'fieldId' => $this->field_id, 'fields' => $fields), TRUE).');');
 		
-		if (isset($this->settings['fieldtype']) && $fieldtype = $this->EE->api_channel_fields->setup_handler($this->settings['fieldtype'], TRUE))
+		if ( ! empty($this->settings['fieldtype']))
 		{
-			$fieldtype->field_name = $this->field_name;
-			$fieldtype->field_id = $this->field_id;
-			$fieldtype->settings = $this->fieldtypes[$this->settings['fieldtype']];
-			$fieldtype->settings['field_list_items'] = $fieldtype->settings['options'] = $options;
+			$method = 'display_field_'.$this->settings['fieldtype'];
 			
-			return $fieldtype->display_field($data);
+			if (method_exists($this, $method))
+			{
+				return $this->$method($options, $data);
+			}
+			else if ($fieldtype = $this->EE->api_channel_fields->setup_handler($this->settings['fieldtype'], TRUE))
+			{
+				$fieldtype->field_name = $this->field_name;
+				$fieldtype->field_id = $this->field_id;
+				$fieldtype->settings = $this->fieldtypes[$this->settings['fieldtype']];
+				$fieldtype->settings['field_list_items'] = $fieldtype->settings['options'] = $options;
+				
+				return $fieldtype->display_field($data);
+			}
 		}
 
-		return form_dropdown($this->field_name, $options, $data);
+		return $this->display_field_select($options, $data);
+	}
+	
+	private function display_field_radio($options, $current_value = '')
+	{
+		$output = form_fieldset('');
+
+		foreach($options as $value => $label)
+		{
+			$output .= form_label(form_radio($this->field_name, $value, $value == $current_value).NBS.$label);
+		}
+		
+		$output .= form_fieldset_close();
+		
+		return $output;
+	}
+	
+	private function display_field_select($options, $current_value = '')
+	{
+		return form_dropdown($this->field_name, $options, $current_value);
 	}
 	
 	private function convert_old_settings($settings = NULL)
