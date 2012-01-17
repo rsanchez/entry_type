@@ -110,7 +110,7 @@ class Entry_type_ft extends EE_Fieldtype
 		{
 			$fields[$value] = (isset($row['hide_fields'])) ? $row['hide_fields'] : array();
 			
-			$options[$value] = ($row['label']) ? $row['label'] : $value;
+			$options[$value] = ( ! empty($row['label'])) ? $row['label'] : $value;
 		}
 		
 		if ( ! isset($this->EE->session->cache['entry_type']['display_field']))
@@ -346,7 +346,7 @@ class Entry_type_ft extends EE_Fieldtype
 		
 		$this->convert_old_settings($settings);
 		
-		if (empty($settings['type_options']))
+		if (empty($this->settings['type_options']))
 		{
 			$vars['type_options'] = array(
 				'' => array(
@@ -357,7 +357,20 @@ class Entry_type_ft extends EE_Fieldtype
 		}
 		else
 		{
-			$vars['type_options'] = $settings['type_options'];
+			foreach ($this->settings['type_options'] as $value => $option)
+			{
+				if ( ! isset($option['hide_fields']))
+				{
+					$this->settings['type_options'][$value]['hide_fields'] = array();
+				}
+				
+				if ( ! isset($option['label']))
+				{
+					$this->settings['type_options'][$value]['label'] = $value;
+				}
+			}
+			
+			$vars['type_options'] = $this->settings['type_options'];
 		}
 		
 		$vars['blank_hide_fields'] = (isset($settings['blank_hide_fields'])) ? $settings['blank_hide_fields'] : array();
