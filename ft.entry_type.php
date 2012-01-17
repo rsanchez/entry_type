@@ -108,7 +108,7 @@ class Entry_type_ft extends EE_Fieldtype
 
 		foreach ($this->settings['type_options'] as $value => $row)
 		{
-			$fields[$value] = $row['hide_fields'];
+			$fields[$value] = (isset($row['hide_fields'])) ? $row['hide_fields'] : array();
 			
 			$options[$value] = ($row['label']) ? $row['label'] : $value;
 		}
@@ -238,7 +238,7 @@ class Entry_type_ft extends EE_Fieldtype
 				
 				$settings['hide_fields'][$type] = array();
 				
-				foreach (array_keys($vars['fields']) as $field_id)
+				foreach (array_keys($this->fields()) as $field_id)
 				{
 					if ( ! in_array($field_id, $show_fields))
 					{
@@ -262,9 +262,68 @@ class Entry_type_ft extends EE_Fieldtype
 			}
 			
 			unset($settings['hide_fields']);
+			unset($this->settings['hide_fields']);
 		}
 		
-		$this->settings = $settings;
+		unset($settings['fields']);
+		unset($this->settings['fields']);
+		
+		$this->settings = array_merge($this->settings, $settings);
+	}
+	
+	protected function fields($group_id = FALSE, $exclude_field_id = FALSE)
+	{
+		static $cache;
+		
+		if ($group_id === FALSE)
+		{
+			if (isset($this->settings['group_id']))
+			{
+				$group_id = $this->settings['group_id'];
+			}
+			else
+			{
+				return array();
+			}
+		}
+		
+		if ($exclude_field_id === FALSE && isset($this->field_id) && is_numeric($this->field_id))
+		{
+			$exclude_field_id = $this->field_id;
+		}
+		
+		if ( ! isset($cache[$group_id]))
+		{
+			$this->EE->load->model('field_model');
+	
+			$query = $this->EE->field_model->get_fields($group_id);
+	
+			$cache[$group_id] = array();
+	
+			foreach ($query->result() as $row)
+			{
+				$cache[$group_id][$row->field_id] = $row->field_label;
+			}
+			
+			$query->free_result();
+		}
+		
+		$fields = $cache[$group_id];
+		
+		if ($exclude_field_id)
+		{
+			foreach ($fields as $field_id => $field_label)
+			{
+				if ($exclude_field_id == $field_id)
+				{
+					unset($fields[$field_id]);
+					
+					break;
+				}
+			}
+		}
+		
+		return $fields;
 	}
 
 	public function display_settings($settings)
@@ -277,19 +336,13 @@ class Entry_type_ft extends EE_Fieldtype
 		
 		$this->EE->load->model('field_model');
 
-		$query = $this->EE->field_model->get_fields($this->EE->input->get('group_id', TRUE));
+		$query = $this->EE->field_model->get_fields();
+		
+		$this->settings['group_id'] = $this->EE->input->get('group_id');
+		
+		$this->field_id = $this->EE->input->get('field_id');
 
-		$vars['fields'] = array();
-
-		foreach ($query->result() as $row)
-		{
-			if ($this->EE->input->get('field_id') == $row->field_id)
-			{
-				continue;
-			}
-			
-			$vars['fields'][$row->field_id] = $row->field_label;
-		}
+		$vars['fields'] = $this->fields();
 		
 		$this->convert_old_settings($settings);
 		
