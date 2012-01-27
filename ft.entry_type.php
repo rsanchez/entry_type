@@ -408,14 +408,14 @@ class Entry_type_ft extends EE_Fieldtype
 		$row_template = preg_replace('/[\r\n\t]/', '', $this->EE->load->view('option_row', array('i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => array(), 'fields' => $vars['fields']), TRUE));
 
 		$this->EE->javascript->output('
-			EE.entryTypeSettings = {
+			window.entryTypeSettings = {
 				rowTemplate: '.$this->EE->javascript->generate_json($row_template).',
 				addRow: function() {
-					$("#entry_type_options tbody").append(EE.entryTypeSettings.rowTemplate.replace(/{{INDEX}}/g, $("#entry_type_options tbody tr").length));
+					$("#entry_type_options tbody").append(entryTypeSettings.rowTemplate.replace(/{{INDEX}}/g, $("#entry_type_options tbody tr").length));
 				},
 				removeRow: function(index) {
 					$("#entry_type_options tbody tr").eq(index).remove();
-					EE.entryTypeSettings.orderRows();
+					entryTypeSettings.orderRows();
 				},
 				orderRows: function() {
 					$("#entry_type_options tbody tr").each(function(index){
@@ -429,15 +429,15 @@ class Entry_type_ft extends EE_Fieldtype
 				}
 			};
 			
-			$("#entry_type_add_row").click(EE.entryTypeSettings.addRow);
+			$("#entry_type_add_row").click(entryTypeSettings.addRow);
 			$(".entry_type_remove_row").live("click", function(){
 				if (confirm("'.lang('confirm_delete_type').'")) {
-					EE.entryTypeSettings.removeRow($(this).parents("tbody").find(".entry_type_remove_row").index(this));
+					entryTypeSettings.removeRow($(this).parents("tbody").find(".entry_type_remove_row").index(this));
 				}
 			});
 			$("#entry_type_options tbody").sortable({
 				stop: function(e, ui) {
-					EE.entryTypeSettings.orderRows();
+					entryTypeSettings.orderRows();
 				}
 			}).children("tr").css({cursor:"move"});
 		');
