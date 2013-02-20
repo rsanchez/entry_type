@@ -10,6 +10,7 @@ This can be used to create a Tumblr-like experience. You are given the ability t
 
 * Download the addon and rename the folder to `entry_type`
 * Copy to `system/expressionengine/third_party`
+* In the Admin go to Add-Ons -> Fieldtypes and click install
 
 ## Tags
 
