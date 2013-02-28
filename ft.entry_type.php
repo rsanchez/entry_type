@@ -100,81 +100,18 @@ class Entry_type_ft extends EE_Fieldtype
 	{
 		$this->convert_old_settings();
 		
-		$fields = array();
-		
 		$options = array();
-		
-		$widths = array();
 
 		foreach ($this->settings['type_options'] as $value => $row)
 		{
-			$fields[$value] = (isset($row['hide_fields'])) ? $row['hide_fields'] : array();
-			
 			$options[$value] = ( ! empty($row['label'])) ? $row['label'] : $value;
 		}
-		
-		if ( ! isset($this->EE->session->cache['entry_type']['display_field']))
-		{
-			$this->EE->session->cache['entry_type']['display_field'] = TRUE;
-			
-			//fetch field widths from publish layout
-			$this->EE->load->model('member_model');
-			
-			$layout_group = (is_numeric($this->EE->input->get_post('layout_preview'))) ? $this->EE->input->get_post('layout_preview') : $this->EE->session->userdata('group_id');
-			
-			$layout_info = $this->EE->member_model->get_group_layout($layout_group, $this->EE->input->get_post('channel_id'));
-			
-			if ( ! empty($layout_info))
-			{
-				foreach ($layout_info as $tab => $tab_fields)
-				{
-					foreach ($tab_fields as $field_name => $field_options)
-					{
-						if (strncmp($field_name, 'field_id_', 9) === 0 && isset($field_options['width']))
-						{
-							$widths[substr($field_name, 9)] = $field_options['width'];
-						}
-					}
-				}
-			}
-			
-			$this->EE->cp->add_to_head('
-			<script type="text/javascript">
-			EE.entryType = {
-				fields: {},
-				widths: '.$this->EE->javascript->generate_json($widths).',
-				change: function() {
-					var value, input;
-					$("div[id*=hold_field_]").not("#hold_field_"+$(this).data("fieldId")).filter(function(){
-						return $(this).attr("id").match(/^hold_field_\d+$/);
-					}).each(function(){
-						$(this).show().width($(this).data("width"));
-					});
-					for (fieldName in EE.entryType.fields) {
-						input = $(":input[name=\'"+fieldName+"\']");
-						if ( input.is(":radio") ) input = input.filter(":checked");
-						value = input.val();
-						for (fieldId in EE.entryType.fields[fieldName][value]) {
-							$("div#hold_field_"+EE.entryType.fields[fieldName][value][fieldId]).hide();
-						}
-					}
-				},
-				addField: function(data) {
-					this.fields[data.fieldName] = data.fields;
-					$(":input[name=\'"+data.fieldName+"\']").data("fieldId", data.fieldId).change(EE.entryType.change).trigger("change");
-				},
-				init: function() {
-					for (fieldId in EE.entryType.widths) {
-						$("div#hold_field_"+fieldId).data("width", EE.entryType.widths[fieldId]);
-					}
-				}
-			};
-			</script>');
-			
-			$this->EE->javascript->output("EE.entryType.init();");
-		}
 
-		$this->EE->javascript->output('EE.entryType.addField('.$this->EE->javascript->generate_json(array('fieldName' => $this->field_name, 'fieldId' => $this->field_id, 'fields' => $fields), TRUE).');');
+		$this->EE->load->library('entry_type');
+
+		$this->EE->entry_type->init($this->EE->input->get_post('channel_id'));
+
+		$this->EE->entry_type->add_field($this->field_name, $this->settings['type_options']);
 		
 		if ( ! empty($this->settings['fieldtype']))
 		{
@@ -328,52 +265,15 @@ class Entry_type_ft extends EE_Fieldtype
 
 	public function display_settings($settings)
 	{
-		$this->EE->lang->loadfile('entry_type', 'entry_type');
-		
-		$this->EE->load->helper(array('array', 'html'));
-		
-		$this->EE->cp->add_js_script(array('ui' => array('sortable')));
-		
-		$this->EE->load->model('field_model');
+		$this->EE->load->library('entry_type');
 
-		$query = $this->EE->field_model->get_fields();
-		
+		$this->EE->load->helper('array');
+
+		$this->convert_old_settings($settings);
+
 		$this->settings['group_id'] = $this->EE->input->get('group_id');
 		
 		$this->field_id = $this->EE->input->get('field_id');
-
-		$vars['fields'] = $this->fields();
-		
-		$this->convert_old_settings($settings);
-		
-		if (empty($this->settings['type_options']))
-		{
-			$vars['type_options'] = array(
-				'' => array(
-					'hide_fields' => array(),
-					'label' => '',
-				),
-			);
-		}
-		else
-		{
-			foreach ($this->settings['type_options'] as $value => $option)
-			{
-				if ( ! isset($option['hide_fields']))
-				{
-					$this->settings['type_options'][$value]['hide_fields'] = array();
-				}
-				
-				if ( ! isset($option['label']))
-				{
-					$this->settings['type_options'][$value]['label'] = $value;
-				}
-			}
-			
-			$vars['type_options'] = $this->settings['type_options'];
-		}
-		
-		$vars['blank_hide_fields'] = (isset($settings['blank_hide_fields'])) ? $settings['blank_hide_fields'] : array();
 		
 		$this->EE->load->library('api');
 		
@@ -402,59 +302,22 @@ class Entry_type_ft extends EE_Fieldtype
 
 		$this->EE->table->add_row(array(
 			lang('types'),
-			$this->EE->load->view('options', $vars, TRUE)
+			$this->EE->entry_type->field_settings($this->settings['group_id'], $this->settings, $this->field_id),
 		));
-
-		$row_template = preg_replace('/[\r\n\t]/', '', $this->EE->load->view('option_row', array('i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => array(), 'fields' => $vars['fields']), TRUE));
-
-		$this->EE->javascript->output('
-			window.entryTypeSettings = {
-				rowTemplate: '.$this->EE->javascript->generate_json($row_template).',
-				addRow: function() {
-					$("#entry_type_options tbody").append(entryTypeSettings.rowTemplate.replace(/{{INDEX}}/g, $("#entry_type_options tbody tr").length));
-				},
-				removeRow: function(index) {
-					$("#entry_type_options tbody tr").eq(index).remove();
-					entryTypeSettings.orderRows();
-				},
-				orderRows: function() {
-					$("#entry_type_options tbody tr").each(function(index){
-						$(this).find(":input").each(function(){
-							var match = $(this).attr("name").match(/^entry_type_options\[\d+\]\[(.*?)\]$/);
-							if (match) {
-								$(this).attr("name", "entry_type_options["+index+"]["+match[1]+"]");
-							}
-						});
-					});
-				}
-			};
-			
-			$("#entry_type_add_row").click(entryTypeSettings.addRow);
-			$(".entry_type_remove_row").live("click", function(){
-				if (confirm("'.lang('confirm_delete_type').'")) {
-					entryTypeSettings.removeRow($(this).parents("tbody").find(".entry_type_remove_row").index(this));
-				}
-			});
-			$("#entry_type_options tbody").sortable({
-				stop: function(e, ui) {
-					entryTypeSettings.orderRows();
-				}
-			}).children("tr").css({cursor:"move"});
-		');
 	}
 
 	public function save_settings($data)
 	{
-		if ( ! isset($data['entry_type_options']))
+		if ( ! isset($data['entry_type_options'][0]))
 		{
 			return;
 		}
 		
 		$settings['type_options'] = array();
 		
-		if (isset($data['entry_type_options']) && is_array($data['entry_type_options']))
+		if (is_array($data['entry_type_options'][0]))
 		{
-			foreach ($data['entry_type_options'] as $row)
+			foreach ($data['entry_type_options'][0] as $row)
 			{
 				if ( ! isset($row['value']))
 				{

@@ -10,7 +10,7 @@
 	<tbody>
 <?php $i = 0; ?>
 <?php foreach ($type_options as $value => $data) : ?>
-<?=$this->load->view('option_row', array('i' => (string) $i, 'value' => $value, 'label' => $data['label'], 'hide_fields' => $data['hide_fields'], 'fields' => $fields), TRUE)?>
+<?=$this->load->view('option_row', array('key' => 0, 'i' => (string) $i, 'value' => $value, 'label' => $data['label'], 'hide_fields' => $data['hide_fields'], 'fields' => $fields), TRUE)?>
 <?php $i++; ?>
 <?php endforeach; ?>
 	</tbody>

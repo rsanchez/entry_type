@@ -1,0 +1,231 @@
+<?php  if ( ! defined('BASEPATH')) exit('No direct script access allowed');
+
+/**
+ * ExpressionEngine - by EllisLab
+ *
+ * @package		ExpressionEngine
+ * @author		ExpressionEngine Dev Team
+ * @copyright	Copyright (c) 2003 - 2011, EllisLab, Inc.
+ * @license		http://expressionengine.com/user_guide/license.html
+ * @link		http://expressionengine.com
+ * @since		Version 2.0
+ * @filesource
+ */
+
+class Entry_type {
+
+    private $field_names = array();
+	
+	public function __construct()
+	{
+		$this->EE =& get_instance();
+
+        $this->EE->load->library('javascript');
+	}
+
+    public function init($channel_id)
+    {
+        if ($this->EE->session->cache('entry_type', 'display_field'))
+        {
+            return;
+        }
+
+        $this->EE->session->set_cache('entry_type', 'display_field', TRUE);
+
+        $query = $this->EE->db->select('field_id, field_name')
+                                ->join('channels', 'channels.field_group = channel_fields.group_id')
+                                ->where('channel_id', $channel_id)
+                                ->get('channel_fields');
+
+        foreach ($query->result() as $row)
+        {
+            $this->field_names[$row->field_id] = REQ === 'CP' ? 'field_id_'.$row->field_id : $row->field_name;
+        }
+
+        $query->free_result();
+
+        if (empty($this->field_names))
+        {
+            return;
+        }
+        
+        //fetch field widths from publish layout
+        $this->EE->load->model('member_model');
+        
+        $layout_group = is_numeric($this->EE->input->get_post('layout_preview')) ? $this->EE->input->get_post('layout_preview') : $this->EE->session->userdata('group_id');
+        
+        $layout_info = $this->EE->member_model->get_group_layout($layout_group, $channel_id);
+    
+        $widths = array();
+        
+        if ( ! empty($layout_info))
+        {
+            foreach ($layout_info as $tab => $tab_fields)
+            {
+                foreach ($tab_fields as $field_name => $field_options)
+                {
+                    if (strncmp($field_name, 'field_id_', 9) === 0 && isset($field_options['width']))
+                    {
+                        $widths[substr($field_name, 9)] = $field_options['width'];
+                    }
+                }
+            }
+        }
+
+        $this->EE->cp->load_package_js('EntryType');
+        
+        $this->EE->javascript->output('EntryType.setWidths('.$this->EE->javascript->generate_json($widths).');');
+    }
+
+    public function add_field($field_name, $type_options)
+    {
+        $fields = array();
+
+        foreach ($type_options as $value => $row)
+        {
+            $fields[$value] = (isset($row['hide_fields'])) ? $row['hide_fields'] : array();
+        }
+
+        if (is_numeric($field_name))
+        {
+            $field_name = isset($this->field_names[$field_name]) ? $this->field_names[$field_name] : 'field_id_'.$field_name;
+        }
+
+        $this->EE->javascript->output('EntryType.addField('.$this->EE->javascript->generate_json($field_name).', '.$this->EE->javascript->generate_json($fields, TRUE).');');
+    }
+    
+    public function fields($group_id, $exclude_field_id = FALSE)
+    {
+        $all_fields = $this->all_fields();
+
+        if ( ! isset($all_fields[$group_id]))
+        {
+            return array();
+        }
+        
+        $fields = array();
+
+        foreach ($all_fields[$group_id] as $field_id => $field)
+        {
+            $fields[$field_id] = $field['field_label'];
+        }
+        
+        if ($exclude_field_id)
+        {
+            foreach ($fields as $field_id => $field_label)
+            {
+                if ($exclude_field_id == $field_id)
+                {
+                    unset($fields[$field_id]);
+                    
+                    break;
+                }
+            }
+        }
+        
+        return $fields;
+    }
+
+    public function all_fields()
+    {
+        static $cache;
+        
+        if (is_null($cache))
+        {
+            $query = $this->EE->db->select('field_id, field_name, field_label, field_groups.group_id, group_name')
+                                    ->where('channel_fields.site_id', $this->EE->config->item('site_id'))
+                                    ->join('field_groups', 'field_groups.group_id = channel_fields.group_id')
+                                    ->order_by('field_groups.group_id, field_order')
+                                    ->get('channel_fields');
+    
+            $cache = array();
+    
+            foreach ($query->result_array() as $row)
+            {
+                if ( ! isset($cache[$row['group_id']]))
+                {
+                    $cache[$row['group_id']] = array();
+                }
+
+                $cache[$row['group_id']][$row['field_id']] = $row;
+            }
+            
+            $query->free_result();
+        }
+
+        return $cache;
+    }
+
+    public function field_settings($field_group = FALSE, $settings = array(), $field_id = FALSE, $key = FALSE)
+    {
+        $this->EE->lang->loadfile('entry_type', 'entry_type');
+        
+        $this->EE->load->helper(array('array', 'html'));
+        
+        $this->EE->cp->add_js_script(array('ui' => array('sortable')));
+
+        if ($field_group)
+        {
+            $vars['fields'] = $this->fields($field_group, $field_id);
+        }
+        else
+        {
+            $vars['fields'] = array();
+
+            foreach ($this->all_fields() as $group_id => $fields)
+            {
+                foreach ($fields as $field_id => $field)
+                {
+                    $vars['fields'][$field_id] = $field['field_label'];
+                }
+            }
+        }
+        
+        if (empty($settings['type_options']))
+        {
+            $vars['type_options'] = array(
+                '' => array(
+                    'hide_fields' => array(),
+                    'label' => '',
+                ),
+            );
+        }
+        else
+        {
+            foreach ($settings['type_options'] as $value => $option)
+            {
+                if ( ! isset($option['hide_fields']))
+                {
+                    $settings['type_options'][$value]['hide_fields'] = array();
+                }
+                
+                if ( ! isset($option['label']))
+                {
+                    $settings['type_options'][$value]['label'] = $value;
+                }
+            }
+            
+            $vars['type_options'] = $settings['type_options'];
+        }
+
+        $row_view = $key ? 'option_row_ext' : 'option_row';
+
+        $options_view = $key ? 'options_ext' : 'options';
+
+        $row_template = preg_replace('/[\r\n\t]/', '', $this->EE->load->view($row_view, array('key' => $key, 'i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => array(), 'fields' => $vars['fields']), TRUE));
+
+        $this->EE->cp->load_package_js('EntryTypeFieldSettings');
+
+        $this->EE->javascript->output('
+        (function() {
+            var fieldSettings = new EntryTypeFieldSettings("#ft_entry_type", '.$this->EE->javascript->generate_json($row_template).');
+            fieldSettings.deleteConfirmMsg = '.$this->EE->javascript->generate_json(lang('confirm_delete_type')).';
+        })();
+        ');
+
+        return $this->EE->load->view($options_view, $vars, TRUE);
+    }
+}
+
+/* End of file Entry_type.php */
+/* Location: /system/expressionengine/third_party/entry_type/libraries/Entry_type.php */
