@@ -115,24 +115,26 @@ class Entry_type_ext {
             return $row;
         }
 
+        if ( ! isset($this->settings[$row['channel_id']]))
+        {
+            return;
+        }
+
         $this->EE->load->library('entry_type');
 
         $this->EE->entry_type->init($row['channel_id'], $row['field_group']);
 
-        $type_options = array(
-            'a' => array (
-                'label' => 'Text',
-                'hide_fields' => array ('2'),
-            ),
-            'b' => array (
-                'label' => 'Image',
-                'hide_fields' => array ('1'),
-            ),
-        );
-
-        $this->EE->entry_type->add_field('structure__template_id', $type_options);
+        foreach ($this->settings[$row['channel_id']] as $field_name => $type_options)
+        {
+            $this->EE->entry_type->add_field($field_name, $type_options);
+        }
 
         return $row;
+    }
+
+    private function is_structure_installed()
+    {
+        return isset($this->EE->extensions->extensions['entry_submission_end'][10]['Structure_ext']);
     }
 
 	// ----------------------------------------------------------------------
@@ -166,159 +168,297 @@ class Entry_type_ext {
 		{
 			return FALSE;
 		}
-	}	
-	
-	// ----------------------------------------------------------------------
+	}
 
-    //@TODO finish the extensions settings
-    public function settings_form($settings)
+    private function ajax_option_row_ext($vars)
     {
-        $this->EE->load->library('entry_type');
+        $vars['type_options'] = array('' => array('value' => '', 'hide_fields' => array()));
 
-        $this->EE->load->helper('array');
+        $vars['channel_id'] = $this->EE->input->post('channel_id');
 
-        $vars['all_fields'] = array('' => 'Choose a field');
-        $fields_by_group = array();
-        $fields_labels = array();
+        $vars['field_name'] = $this->EE->input->post('field_name');
 
-        $all_fields = $this->EE->entry_type->all_fields();
+        $vars['value_options'] = isset($vars['value_options'][$vars['field_name']][$vars['channel_id']]) ? $vars['value_options'][$vars['field_name']][$vars['channel_id']] : array();
 
-        foreach ($all_fields as $group_id => $fields)
+        //get the fields by field group or 
+        $vars['fields'] = isset($vars['fields_by_id'][$vars['channel_id']]) ? $vars['fields_by_id'][$vars['channel_id']] : array();
+
+        exit($this->EE->load->view('option_row_ext', $vars, TRUE));
+    }
+
+    private function ajax_options_field_ext($vars)
+    {
+        $vars['type_options'] = array('' => array('value' => '', 'hide_fields' => array()));
+
+        $vars['channel_id'] = $this->EE->input->post('channel_id');
+
+        $vars['field_name'] = $this->EE->input->post('field_name');
+
+        $vars['value_options'] = isset($vars['value_options'][$vars['field_name']][$vars['channel_id']]) ? $vars['value_options'][$vars['field_name']][$vars['channel_id']] : array();
+
+        //get the fields by field group or 
+        $vars['fields'] = isset($vars['fields_by_id'][$vars['channel_id']]) ? $vars['fields_by_id'][$vars['channel_id']] : array();
+
+        exit($this->EE->load->view('options_field_ext', $vars, TRUE));
+    }
+
+    private function ajax_option_field_row_ext($vars)
+    {
+        $vars['hide_fields'] = array();
+
+        $vars['value'] = '';
+
+        $vars['i'] = '{{INDEX}}';
+
+        $vars['channel_id'] = $this->EE->input->post('channel_id');
+
+        $vars['field_name'] = $this->EE->input->post('field_name');
+
+        $vars['value_options'] = isset($vars['value_options'][$vars['field_name']][$vars['channel_id']]) ? $vars['value_options'][$vars['field_name']][$vars['channel_id']] : array();
+
+        //get the fields by field group or 
+        $vars['fields'] = isset($vars['fields_by_id'][$vars['channel_id']]) ? $vars['fields_by_id'][$vars['channel_id']] : array();
+
+        exit($this->EE->load->view('option_field_row_ext', $vars, TRUE));
+    }
+
+    public function settings_form()
+    {
+        $this->EE->lang->load('content');
+
+        $query = $this->EE->db->select('group_name, template_id, template_name')
+                                ->join('template_groups', 'templates.group_id = template_groups.group_id')
+                                ->where('templates.site_id', $this->EE->config->item('site_id'))
+                                ->order_by('group_order DESC, template_name ASC')
+                                ->get('templates');
+
+        $templates = array();
+
+        foreach ($query->result() as $row)
         {
-            $field_by_group[$group_id] = array();
-
-            foreach ($fields as $field)
+            if (  ! isset($templates[$row->group_name]))
             {
-                if ( ! isset($vars['all_fields'][$field['group_name']]))
+                $templates[$row->group_name] = array();
+            }
+
+            $templates[$row->group_name][$row->template_id] = $row->template_name;
+        }
+
+        $template_field_name = $this->is_structure_installed() ? 'structure__template_id' : 'pages__pages_template_id';
+
+        $vars['value_options'] = array(
+            'status' => array(),
+            $template_field_name => array(),
+        );
+
+        $vars['fields_by_id'] = array('' => array());
+
+        $channels_by_field_group = array();
+
+        $vars['channels'] = array(
+            '' => 'Choose a channel',
+        );
+
+        $query = $this->EE->db->select('channel_id, field_group, status_group, channel_title')
+                                ->where('site_id', $this->EE->config->item('site_id'))
+                                ->get('channels');
+
+        foreach ($query->result() as $row)
+        {
+            $vars['channels'][$row->channel_id] = $row->channel_title;
+
+            $vars['fields_by_id'][$row->channel_id] = array();
+
+            $channels_by_field_group[$row->field_group][] = $row->channel_id;
+
+            $channels_by_status_group[$row->status_group][] = $row->channel_id;
+
+            $vars['value_options'][$template_field_name][$row->channel_id] = $templates;
+
+            $vars['value_options']['status'][$row->channel_id] = array('open' => lang('open'), 'closed' => lang('closed'));
+        }
+
+        $query->free_result();
+
+        $query = $this->EE->db->select('status, group_id')
+                                ->where('site_id', $this->EE->config->item('site_id'))
+                                ->order_by('status_order')
+                                ->get('statuses');
+
+        $vars['statuses_by_id'] = array();
+
+        foreach ($query->result() as $row)
+        {
+            if (isset($channels_by_status_group[$row->group_id]))
+            {
+                foreach ($channels_by_status_group[$row->group_id] as $_channel_id)
                 {
-                    $vars['all_fields'][$field['group_name']] = array();
+                    $vars['value_options']['status'][$_channel_id][$row->status] = lang($row->status);
                 }
-
-                $vars['all_fields'][$field['group_name']][$field['field_id']] = $field['field_label'];
-
-                $fields_by_group[$group_id][] = $field['field_id'];
-                $field_labels[$field['field_id']] = $field['field_label'];
             }
         }
 
-        $vars['fields'] = array();
+        $query->free_result();
 
-        if ( ! empty($this->settings['fields']))
+        $query = $this->EE->db->select('group_id, group_name')
+                                ->where('site_id', $this->EE->config->item('site_id'))
+                                ->get('field_groups');
+
+        foreach ($query->result() as $row)
         {
-            foreach ($this->settings['fields'] as $field_id => $settings)
+            $row->fields = array();
+
+            $vars['fields_by_id']['group_'.$row->group_id] = array();
+        }
+
+        $query->free_result();
+
+        $query = $this->EE->db->select('field_id, group_id, field_label')
+                                ->where('site_id', $this->EE->config->item('site_id'))
+                                ->get('channel_fields');
+
+        foreach ($query->result() as $row)
+        {
+            $vars['fields_by_id']['group_'.$row->group_id][$row->field_id] = $row->field_label;
+            
+            if (isset($channels_by_field_group[$row->group_id]))
             {
-                $vars['fields'][$field_id] = $this->EE->entry_type->field_settings($this->settings['group_id'], $settings, $field_id, $field_id);
+                foreach ($channels_by_field_group[$row->group_id] as $_channel_id)
+                {
+                    $vars['fields_by_id'][$_channel_id][$row->field_id] = $row->field_label;
+                }
             }
+        }
+
+        $query->free_result();
+
+        $vars['global_fields'] = array(
+            '' => 'Choose a field',
+            'status' => 'Status',
+            $this->is_structure_installed() ? 'structure__template_id' : 'pages__pages_template_id' => 'Template',
+        );
+
+        $this->settings = $this->get_settings();
+
+        if (empty($this->settings))
+        {
+            /*
+            $vars['settings'] = array(
+                'group_1' => array(
+                    'status' => array(
+                        'open' => array(
+                            'hide_fields' => array(),
+                        )
+                    )
+                )
+            );
+            */
+
+            $vars['settings'] = array(
+                '' => array(
+                    '' => array(
+                        '' => array(
+                            'hide_fields' => array(),
+                        )
+                    )
+                )
+            );
         }
         else
         {
-            $vars['fields'][''] = $this->EE->entry_type->field_settings(NULL, array(), 0, 1);
+            $vars['settings'] = $this->settings;
         }
 
-        $this->EE->javascript->output('
-        (function(fieldsByGroup, fieldLabels) {
+        if (method_exists($this, 'ajax_'.$this->EE->input->get('view')))
+        {
+            return call_user_func(array($this, 'ajax_'.$this->EE->input->get('view')), $vars);
+        }
 
-            function getFieldGroup(fieldId) {
-                for (groupId in fieldsByGroup) {
-                    if ($.inArray(fieldId, fieldsByGroup[groupId]) !== -1) {
-                        return groupId;
-                    }
-                }
-                return null;
+        $this->EE->load->library('javascript');
+
+        $this->EE->cp->load_package_js('EntryTypeFieldSettings');
+        $this->EE->cp->load_package_js('EntryTypeExtSettings');
+
+        foreach ($vars['settings'] as $channel_id => $row)
+        {
+            foreach ($row as $field_name => $type_options)
+            {
+                $value_options = isset($vars['value_options'][$field_name][$channel_id]) ? $vars['value_options'][$field_name][$channel_id] : array();
+
+                $options = array(
+                    'rowTemplate' => preg_replace('/[\r\n\t]/', '', $this->EE->load->view('option_field_row_ext', array('channel_id' => $channel_id, 'field_name' => $field_name, 'i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => array(), 'fields' => $vars['fields_by_id'][$channel_id], 'value_options' => $value_options), TRUE)),
+                    'sortable' => false,
+                    'fieldName' => 'channel_'.$channel_id,
+                );
+
+                $this->EE->javascript->output('
+                    new EntryTypeFieldSettings('.$this->EE->javascript->generate_json('#'.$channel_id.'_'.$field_name).', '.$this->EE->javascript->generate_json($options).');
+                ');
             }
+        }
 
-            function getSiblingFields(fieldId) {
-                var siblings = {};
-                for (groupId in fieldsByGroup) {
-                    if ($.inArray(fieldId, fieldsByGroup[groupId]) !== -1) {
-                        $.each(fieldsByGroup[groupId], function(i, v) {
-                            if (v != fieldId) {
-                                siblings[v] = fieldLabels[v];
-                            }
-                        });
-                    }
-                }
-                return siblings;
-            }
-
-            function updateSelect($select, options) {
-                var select = "<select multiple=\'multiple\' name=\'"+$select.attr("name")+"\'>";
-
-                $.each(options, function(value, text) {
-                    select += "<option value=\'"+value+"\'>"+text+"</option>";
-                });
-
-                select += "</select>";
-
-                $select.replaceWith(select);
-            }
-
-            $(".entry_type_field_select").live("change", function() {
-                var $this = $(this),
-                    $row = $this.parents("tr"),
-                    $options = $row.find(".entry_type_options"),
-                    $inputs = $row.find(":input[name^=entry_type_options]"),
-                    fieldId = $this.val(),
-                    groupId = getFieldGroup(fieldId),
-                    options = {};
-
-                if (fieldId) {
-                    $options.show();
-
-                    updateSelect($options.find("select[name*=hide_fields]"), getSiblingFields(fieldId));
-
-                    $inputs.each(function() {
-                        var $input = $(this),
-                            name = $input.attr("name");
-
-                        $input.attr("name", name.replace(/^entry_type_options\[[^\]]+\]/, "entry_type_options["+fieldId+"]"));
-                    });
-                } else {
-                    $options.hide();
-                }
-            });
-        })('.$this->EE->javascript->generate_json($fields_by_group, TRUE).', '.$this->EE->javascript->generate_json($field_labels).');
-        ');
-
-        return $this->EE->load->view('options_ext', $vars, TRUE);
+        return form_open('C=addons_extensions'.AMP.'M=save_extension_settings'.AMP.'file=entry_type')
+                .$this->EE->load->view('options_ext', $vars, TRUE)
+                .form_submit('', lang('submit'), 'class="submit"')
+                .form_close();
     }
 
-    public function save_settings($data)
+    private function get_settings()
     {
-        if ( ! isset($data['entry_type_options']))
+        $query = $this->EE->db->select('settings')
+                                ->where('class', __CLASS__)
+                                ->limit(1)
+                                ->get('extensions');
+
+        $settings = $query->num_rows() > 0 ? @unserialize($query->row('settings')) : FALSE;
+
+        $query->free_result();
+
+        return is_array($settings) ? $settings : array();
+    }
+
+    public function save_settings()
+    {
+        $settings = array();
+
+        foreach ($_POST as $channel_id => $row)
         {
-            return;
-        }
-        
-        $settings['type_options'] = array();
-        
-        if (isset($data['entry_type_options']) && is_array($data['entry_type_options']))
-        {
-            foreach ($data['entry_type_options'] as $row)
+            if (strncmp('channel_', $channel_id, 8) !== 0)
             {
-                if ( ! isset($row['value']))
+                continue;
+            }
+
+            $channel_id = substr($channel_id, 8);
+
+            $settings[$channel_id] = array();
+
+            foreach ($row as $field_name => $type_options)
+            {
+                $settings[$channel_id][$field_name] = array();
+
+                foreach ($type_options as $options)
                 {
-                    continue;
+                    $value = $options['value'];
+
+                    unset($options['value']);
+
+                    if ( ! isset($options['hide_fields']))
+                    {
+                        $options['hide_fields'] = array();
+                    }
+
+                    $settings[$channel_id][$field_name][$value] = $options;
                 }
-                
-                $value = $row['value'];
-                
-                unset($row['value']);
-                
-                if (empty($row['label']))
-                {
-                    $row['label'] = $value;
-                }
-                
-                $settings['type_options'][$value] = $row;
             }
         }
-        
-        $settings['blank_hide_fields'] = (isset($data['entry_type_blank_hide_fields'])) ? $data['entry_type_blank_hide_fields'] : array();
-        
-        $settings['fieldtype'] = (isset($data['entry_type_fieldtype'])) ? $data['entry_type_fieldtype'] : 'select';
-        
-        return $settings;
+
+        $this->EE->db->update('extensions', array(
+            'settings' => serialize($settings),
+        ), array(
+            'class' => __CLASS__,
+        ));
+
+        $this->EE->functions->redirect(BASE.AMP.'C=addons_extensions'.AMP.'M=extension_settings'.AMP.'file=entry_type');
     }
 }
 

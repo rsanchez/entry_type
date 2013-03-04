@@ -294,6 +294,55 @@ class Entry_type_ft extends EE_Fieldtype
 				$types[$type] = $row['name'];
 			}
 		}
+
+        $this->EE->lang->loadfile('entry_type', 'entry_type');
+        
+        $this->EE->load->helper(array('array', 'html'));
+        
+        $this->EE->cp->add_js_script(array('ui' => array('sortable')));
+
+        $vars['fields'] = array();
+
+        if ( ! empty($this->settings['group_id']))
+        {
+            $vars['fields'] = $this->fields($this->settings['group_id'], $this->field_id);
+        }
+        
+        if (empty($settings['type_options']))
+        {
+            $vars['type_options'] = array(
+                '' => array(
+                    'hide_fields' => array(),
+                    'label' => '',
+                ),
+            );
+        }
+        else
+        {
+            foreach ($settings['type_options'] as $value => $option)
+            {
+                if ( ! isset($option['hide_fields']))
+                {
+                    $settings['type_options'][$value]['hide_fields'] = array();
+                }
+                
+                if ( ! isset($option['label']))
+                {
+                    $settings['type_options'][$value]['label'] = $value;
+                }
+            }
+            
+            $vars['type_options'] = $settings['type_options'];
+        }
+
+        $options = array(
+        	'rowTemplate' => preg_replace('/[\r\n\t]/', '', $this->EE->load->view('option_row', array('key' => 0, 'i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => array(), 'fields' => $vars['fields']), TRUE)),
+        	'deleteConfirmMsg' => lang('confirm_delete_type'),
+        );
+
+        $this->EE->cp->load_package_js('EntryTypeFieldSettings');
+
+        $this->EE->javascript->output('new EntryTypeFieldSettings("#ft_entry_type", '.$this->EE->javascript->generate_json($options).');');
 		
 		$this->EE->table->add_row(array(
 			lang('field_type'),
@@ -302,7 +351,7 @@ class Entry_type_ft extends EE_Fieldtype
 
 		$this->EE->table->add_row(array(
 			lang('types'),
-			$this->EE->entry_type->field_settings($this->settings['group_id'], $this->settings, $this->field_id),
+			$this->EE->load->view('options', $vars, TRUE)
 		));
 	}
 

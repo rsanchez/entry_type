@@ -1,8 +1,7 @@
-		<tr>
-			<td>
-                <?=form_input(sprintf('entry_type_options[%s][%s][value]', $key, $i), $value)?>
-                <?=form_label('Use text instead of value'.NBS.form_checkbox('', ''))?>
-            </td>
-			<td><?=form_multiselect(sprintf('entry_type_options[%s][%s][hide_fields][]', $key, $i), $fields, $hide_fields)?></td>
-			<td><a href="javascript:void(0);" class="entry_type_remove_row"><?=img(array('border' => '0', 'src' => $this->config->item('theme_folder_url').'cp_themes/default/images/content_custom_tab_delete.png'))?></a></td>
-		</tr>
+<?php $display = $channel_id ? '' : ' style="display:none;"'; ?>
+        <tr>
+            <td><?=form_dropdown('', $channels, $channel_id, 'class="entry_type_channel_select"')?></td>
+            <td><?=form_dropdown('', $global_fields, $field_name, 'class="entry_type_field_select"'.$display)?></td>
+            <td><div id="<?=$channel_id?>_<?=$field_name?>" class="entry_type_field_options"<?=$display?>><?=$this->load->view('options_field_ext', array('channel_id' => $channel_id, 'type_options' => $type_options, 'fields' => $channel_id ? $fields_by_id[$channel_id] : array(), 'value_options' => $field_name && $channel_id ? $value_options[$field_name][$channel_id] : array(), 'field_name' => $field_name), TRUE)?></div></td>
+            <td><a href="javascript:void(0);" class="remove_field"><?=img(array('border' => '0', 'src' => $this->config->item('theme_folder_url').'cp_themes/default/images/content_custom_tab_delete.png'))?></a></td>
+        </tr>
