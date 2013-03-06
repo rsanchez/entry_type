@@ -117,7 +117,7 @@ class Entry_type_ext {
 
         if ( ! isset($this->settings[$row['channel_id']]))
         {
-            return;
+            return $row;
         }
 
         $this->EE->load->library('entry_type');
