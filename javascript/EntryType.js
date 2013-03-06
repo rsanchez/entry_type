@@ -1,8 +1,6 @@
-var EntryType;
+(function(w) {
 
-(function() {
-
-	EntryType = {
+	w.EntryType = {
     fields: {},
     change: function(event) {
       var value, $input, fieldName, fieldId;
@@ -34,6 +32,4 @@ var EntryType;
     }
 	};
 
-	win.EntryType = EntryType;
-
-})();
+})(window);
