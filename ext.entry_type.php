@@ -226,6 +226,8 @@ class Entry_type_ext {
     {
         $this->EE->lang->load('content');
 
+        $this->EE->load->helper(array('html', 'form'));
+
         $query = $this->EE->db->select('group_name, template_id, template_name')
                                 ->join('template_groups', 'templates.group_id = template_groups.group_id')
                                 ->where('templates.site_id', $this->EE->config->item('site_id'))
