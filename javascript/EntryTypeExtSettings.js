@@ -52,7 +52,7 @@ var EntryTypeExtSettings;
 		$fieldOptions.html("").show();
 
 		EntryTypeExtSettings.load($fieldOptions, "options_field_ext", $fieldOptions, data, function() {
-			$.post(
+			$.get(
 				EE.BASE+"&C=addons_extensions&M=extension_settings&file=entry_type&view=option_field_row_ext",
 				data,
 				function(rowTemplate) {
