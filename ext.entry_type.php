@@ -174,9 +174,9 @@ class Entry_type_ext {
     {
         $vars['type_options'] = array('' => array('value' => '', 'hide_fields' => array()));
 
-        $vars['channel_id'] = $this->EE->input->post('channel_id');
+        $vars['channel_id'] = $this->EE->input->get_post('channel_id');
 
-        $vars['field_name'] = $this->EE->input->post('field_name');
+        $vars['field_name'] = $this->EE->input->get_post('field_name');
 
         $vars['value_options'] = isset($vars['value_options'][$vars['field_name']][$vars['channel_id']]) ? $vars['value_options'][$vars['field_name']][$vars['channel_id']] : array();
 
@@ -190,9 +190,9 @@ class Entry_type_ext {
     {
         $vars['type_options'] = array('' => array('value' => '', 'hide_fields' => array()));
 
-        $vars['channel_id'] = $this->EE->input->post('channel_id');
+        $vars['channel_id'] = $this->EE->input->get_post('channel_id');
 
-        $vars['field_name'] = $this->EE->input->post('field_name');
+        $vars['field_name'] = $this->EE->input->get_post('field_name');
 
         $vars['value_options'] = isset($vars['value_options'][$vars['field_name']][$vars['channel_id']]) ? $vars['value_options'][$vars['field_name']][$vars['channel_id']] : array();
 
@@ -210,9 +210,9 @@ class Entry_type_ext {
 
         $vars['i'] = '{{INDEX}}';
 
-        $vars['channel_id'] = $this->EE->input->post('channel_id');
+        $vars['channel_id'] = $this->EE->input->get_post('channel_id');
 
-        $vars['field_name'] = $this->EE->input->post('field_name');
+        $vars['field_name'] = $this->EE->input->get_post('field_name');
 
         $vars['value_options'] = isset($vars['value_options'][$vars['field_name']][$vars['channel_id']]) ? $vars['value_options'][$vars['field_name']][$vars['channel_id']] : array();
 

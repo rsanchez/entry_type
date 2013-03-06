@@ -7,7 +7,7 @@ var EntryTypeExtSettings;
 				src: EE.PATH_CP_GBL_IMG+"indicator.gif"
 			});
 			$(target).after($loading);
-			$.post(
+			$.get(
 				EE.BASE+"&C=addons_extensions&M=extension_settings&file=entry_type&view="+view,
 				data,
 				function(data) {
