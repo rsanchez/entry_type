@@ -72,7 +72,15 @@ class Entry_type {
             }
         }
 
-        $this->EE->cp->load_package_js('EntryType');
+        if (REQ === 'CP')
+        {
+            $this->EE->cp->load_package_js('EntryType');
+        }
+        //for safecracker
+        else
+        {
+            $this->EE->cp->add_to_head('<script type="text/javascript">'.file_get_contents(PATH_THIRD.'entry_type/javascript/EntryType.js').'</script>');
+        }
         
         $this->EE->javascript->output('EntryType.setWidths('.$this->EE->javascript->generate_json($widths).');');
     }
