@@ -340,6 +340,40 @@ class Entry_type_ext {
             $this->is_structure_installed() ? 'structure__template_id' : 'pages__pages_template_id' => 'Template',
         );
 
+        if ($this->is_structure_installed())
+        {
+            $parent_options = array(0 => 'NONE');
+
+            require_once PATH_THIRD.'structure/sql.structure.php';
+
+            $sql = new Sql_structure();
+
+            foreach ($sql->get_data() as $entry_id => $data)
+            {
+                $parent_options[$entry_id] = str_repeat("--", $data['depth']).$data['title'];;
+            }
+
+            for ($i = 0; $i <= 10; $i++)
+            {
+                $depth_options['depth:'.$i] = 'Depth: '.$i;
+            }
+
+            foreach ($vars['channels'] as $channel_id => $channel_title)
+            {
+                //@TODO this breaks because you can't have two fields of the same name
+                //$vars['value_options']['structure__parent_id'][$channel_id] = $parent_options;
+                $vars['value_options']['structure__parent_id'][$channel_id] = $depth_options;
+            }
+
+            $this->EE->load->remove_package_path(PATH_THIRD.'structure/');
+
+            unset($sql);
+
+            //$vars['global_fields']['structure__parent_id'] = 'Structure Parent Entry';
+
+            $vars['global_fields']['structure__parent_id'] = 'Structure Page Depth';
+        }
+
         $this->settings = $this->get_settings();
 
         if (empty($this->settings))

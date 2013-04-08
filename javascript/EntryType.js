@@ -2,6 +2,7 @@
 
 	w.EntryType = {
     fields: {},
+    callbacks: {},
     change: function(event) {
       var value, $input, fieldName, fieldId;
       if (event === undefined) {
@@ -15,15 +16,18 @@
       for (fieldName in EntryType.fields) {
         $input = $(":input[name=\'"+fieldName+"\']");
         if ( $input.is(":radio") ) $input = $input.filter(":checked");
-        value = $input.val();
+        value = EntryType.callbacks[fieldName] !== undefined ? EntryType.callbacks[fieldName]($input) : $input.val();
         for (fieldId in EntryType.fields[fieldName][value]) {
           $("div#hold_field_"+EntryType.fields[fieldName][value][fieldId]).hide();
         }
       }
     },
-    addField: function(fieldName, fields) {
+    addField: function(fieldName, fields, callback) {
 			var $input = $(":input[name=\'"+fieldName+"\']");
       EntryType.fields[fieldName] = fields;
+      if (callback !== undefined) {
+        EntryType.callbacks[fieldName] = callback;
+      }
       $input.change(EntryType.change);
       EntryType.change({target: $input});
     },
