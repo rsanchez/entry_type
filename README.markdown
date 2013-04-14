@@ -2,14 +2,14 @@
 
 A dropdown fieldtype that shows/hides other fields on the publish page.
 
-This can be used to create a Tumblr-like experience. For example, you first add a list of "types" to the Entry Type field: Link, Video, Image, etc. Then you create custom field(s) for each of those types for that field group. Then you can associate certain fields in that group to types, and when you select a type in the dropdown, those associated fields will show, and the others will hide.
+This can be used to create a Tumblr-like experience. You are given the ability to select the "type" of entry, and display certain fields depending on the selected "type". For example, you first add a list of "types" to the Entry Type field: Link, Video, Image, etc. Then you create custom field(s) for each of those types for that field group. Then you can associate certain fields in that group to types, and when you select a type in the dropdown, those associated fields will show, and the others will hide.
 
 @TODO add screencast here
 
 ## Installation
 
-* Download the addon and rename the folder to entry_title
-* Copy to system/expressionengine/third_party
+* Download the addon and rename the folder to `entry_type`
+* Copy to `system/expressionengine/third_party`
 
 ## Tags
 
