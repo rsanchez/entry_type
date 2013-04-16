@@ -105,6 +105,7 @@ class Entry_type_ft extends EE_Fieldtype
 		$options = array();
 		
 		$widths = array();
+		$invisible = array();
 
 		foreach ($this->settings['type_options'] as $value => $row)
 		{
@@ -130,9 +131,19 @@ class Entry_type_ft extends EE_Fieldtype
 				{
 					foreach ($tab_fields as $field_name => $field_options)
 					{
-						if (strncmp($field_name, 'field_id_', 9) === 0 && isset($field_options['width']))
+						if (strncmp($field_name, 'field_id_', 9) === 0)
 						{
-							$widths[substr($field_name, 9)] = $field_options['width'];
+							$field_id = substr($field_name, 9);
+							
+							if (isset($field_options['width']))
+							{
+								$widths[$field_id] = $field_options['width'];
+							}
+							
+							if (isset($field_options['visible']) && ! $field_options['visible'])
+							{
+								$invisible[] = $field_id;
+							}
 						}
 					}
 				}
@@ -142,13 +153,18 @@ class Entry_type_ft extends EE_Fieldtype
 			<script type="text/javascript">
 			EE.entryType = {
 				fields: {},
+				invisible: '.$this->EE->javascript->generate_json($invisible, TRUE).',
 				widths: '.$this->EE->javascript->generate_json($widths).',
 				change: function() {
 					var value, input;
 					$("div[id*=hold_field_]").not("#hold_field_"+$(this).data("fieldId")).filter(function(){
 						return $(this).attr("id").match(/^hold_field_\d+$/);
 					}).each(function(){
-						$(this).show().width($(this).data("width"));
+						var match = $(this).attr("id").match(/^hold_field_(\d+)$/);
+						$(this).width($(this).data("width"));
+						if ($.inArray(match[1], EE.entryType.invisible) === -1) {
+							$(this).show();
+						}
 					});
 					for (fieldName in EE.entryType.fields) {
 						input = $(":input[name=\'"+fieldName+"\']");
