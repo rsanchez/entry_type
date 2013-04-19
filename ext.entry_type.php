@@ -355,23 +355,23 @@ class Entry_type_ext {
 
             for ($i = 0; $i <= 10; $i++)
             {
-                $depth_options['depth:'.$i] = 'Depth: '.$i;
+                $depth_options[$i] = 'Depth: '.$i;
             }
 
             foreach ($vars['channels'] as $channel_id => $channel_title)
             {
                 //@TODO this breaks because you can't have two fields of the same name
-                //$vars['value_options']['structure__parent_id'][$channel_id] = $parent_options;
-                $vars['value_options']['structure__parent_id'][$channel_id] = $depth_options;
+                $vars['value_options']['structure__parent_id'][$channel_id] = $parent_options;
+                $vars['value_options']['structure_depth'][$channel_id] = $depth_options;
             }
 
             $this->EE->load->remove_package_path(PATH_THIRD.'structure/');
 
             unset($sql);
 
-            //$vars['global_fields']['structure__parent_id'] = 'Structure Parent Entry';
+            $vars['global_fields']['structure__parent_id'] = 'Structure Parent Entry';
 
-            $vars['global_fields']['structure__parent_id'] = 'Structure Page Depth';
+            $vars['global_fields']['structure_depth'] = 'Structure Page Depth';
         }
 
         $this->settings = $this->get_settings();
