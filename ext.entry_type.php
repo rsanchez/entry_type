@@ -231,7 +231,7 @@ class Entry_type_ext {
         $query = $this->EE->db->select('group_name, template_id, template_name')
                                 ->join('template_groups', 'templates.group_id = template_groups.group_id')
                                 ->where('templates.site_id', $this->EE->config->item('site_id'))
-                                ->order_by('group_order DESC, template_name ASC')
+                                ->order_by('group_order ASC, template_name ASC')
                                 ->get('templates');
 
         $templates = array();
@@ -350,7 +350,11 @@ class Entry_type_ext {
 
             foreach ($sql->get_data() as $entry_id => $data)
             {
-                $parent_options[$entry_id] = str_repeat("--", $data['depth']).$data['title'];;
+                //$parent_options[$entry_id] = str_repeat("--", $data['depth']).$data['title'];
+                if ($data['depth'] == 0)
+                {
+                    $parent_options[$entry_id] = $data['title'];
+                }
             }
 
             for ($i = 0; $i <= 10; $i++)
@@ -360,8 +364,7 @@ class Entry_type_ext {
 
             foreach ($vars['channels'] as $channel_id => $channel_title)
             {
-                //@TODO this breaks because you can't have two fields of the same name
-                $vars['value_options']['structure__parent_id'][$channel_id] = $parent_options;
+                $vars['value_options']['structure_parent'][$channel_id] = $parent_options;
                 $vars['value_options']['structure_depth'][$channel_id] = $depth_options;
             }
 
@@ -369,7 +372,7 @@ class Entry_type_ext {
 
             unset($sql);
 
-            $vars['global_fields']['structure__parent_id'] = 'Structure Parent Entry';
+            $vars['global_fields']['structure_parent'] = 'Structure Parent Entry';
 
             $vars['global_fields']['structure_depth'] = 'Structure Page Depth';
         }
@@ -474,7 +477,17 @@ class Entry_type_ext {
 
                 foreach ($type_options as $options)
                 {
+                    if ( ! isset($options['value']))
+                    {
+                        continue;
+                    }
+
                     $value = $options['value'];
+
+                    if (is_array($value))
+                    {
+                        $value = implode('|', $value);
+                    }
 
                     unset($options['value']);
 
@@ -484,6 +497,11 @@ class Entry_type_ext {
                     }
 
                     $settings[$channel_id][$field_name][$value] = $options;
+                }
+
+                if (empty($settings[$channel_id][$field_name]))
+                {
+                    unset($settings[$channel_id][$field_name]);
                 }
             }
         }

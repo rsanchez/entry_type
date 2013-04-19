@@ -91,7 +91,10 @@ class Entry_type {
 
         foreach ($type_options as $value => $row)
         {
-            $fields[$value] = (isset($row['hide_fields'])) ? $row['hide_fields'] : array();
+            foreach (explode('|', $value) as $val)
+            {
+                $fields[$val] = (isset($row['hide_fields'])) ? $row['hide_fields'] : array();
+            }
         }
 
         if (is_numeric($field_name))
@@ -114,11 +117,46 @@ class Entry_type {
         $this->EE->javascript->output('EntryType.addField('.$this->EE->javascript->generate_json($field_name).', '.$this->EE->javascript->generate_json($fields, TRUE).');');
     }
 
+    protected function add_structure_parent_field($fields)
+    {
+        if ( ! $this->EE->session->cache(__CLASS__, __FUNCTION__))
+        {
+            $this->EE->session->set_cache(__CLASS__, __FUNCTION__, TRUE);
+
+            $query = $this->EE->db->select('entry_id, parent_id')
+                                    ->where('site_id', $this->EE->config->item('site_id'))
+                                    ->get('structure');
+
+            $structure_listings = array();
+
+            foreach ($query->result() as $row)
+            {
+                $structure_listings[$row->entry_id] = $row->parent_id;
+            }
+
+            $query->free_result();
+
+            $this->EE->javascript->set_global('structureListings', $structure_listings);
+        }
+
+        $callback = 'function() {
+            var val = this.$input.val();
+            
+            while (EE.structureListings[val] !== undefined && EE.structureListings[val] != "0") {
+                val = EE.structureListings[val];
+            }
+
+            return val;
+        }';
+
+        $this->EE->javascript->output('EntryType.addField("structure__parent_id", '.$this->EE->javascript->generate_json($fields, TRUE).', '.$callback.');');
+    }
+
     protected function add_structure_depth_field($fields)
     {
-        $callback = 'function($input) {
-            var val = $input.val(),
-                label = $input.find("option:selected").text();
+        $callback = 'function() {
+            var val = this.$input.val(),
+                label = this.$input.find("option:selected").text();
                 depth = (val == 0) ? 0 : label.split("--").length;
             
             return depth;

@@ -9,7 +9,7 @@
 	<tbody>
 <?php $i = 0; ?>
 <?php foreach ($type_options as $value => $data) : ?>
-<?=$this->load->view('option_field_row_ext', array('channel_id' => $channel_id, 'field_name' => $field_name, 'i' => (string) $i, 'value' => $value, 'hide_fields' => $data['hide_fields'], 'fields' => $fields, 'value_options' => $value_options), TRUE)?>
+<?=$this->load->view('option_field_row_ext', array('channel_id' => $channel_id, 'field_name' => $field_name, 'i' => (string) $i, 'value' => explode('|', $value), 'hide_fields' => $data['hide_fields'], 'fields' => $fields, 'value_options' => $value_options), TRUE)?>
 <?php $i++; ?>
 <?php endforeach; ?>
 	</tbody>
