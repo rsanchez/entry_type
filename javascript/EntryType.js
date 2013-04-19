@@ -1,10 +1,9 @@
 (function(w) {
 
 	w.EntryType = {
-    fields: {},
-    callbacks: {},
+    fields: [],
     change: function(event) {
-      var value, $input, fieldName, fieldId;
+      var i, value, $input, fieldId;
       if (event === undefined) {
         event = {target: ""};
       }
@@ -13,21 +12,22 @@
       }).each(function(){
         $(this).show().width($(this).data("width"));
       });
-      for (fieldName in EntryType.fields) {
-        $input = $(":input[name=\'"+fieldName+"\']");
+      for (i = 0; i < EntryType.fields.length; i++) {
+        $input = $(":input[name=\'"+EntryType.fields[i].fieldName+"\']");
         if ( $input.is(":radio") ) $input = $input.filter(":checked");
-        value = EntryType.callbacks[fieldName] !== undefined ? EntryType.callbacks[fieldName]($input) : $input.val();
-        for (fieldId in EntryType.fields[fieldName][value]) {
-          $("div#hold_field_"+EntryType.fields[fieldName][value][fieldId]).hide();
+        value = EntryType.fields[i].callback !== null ? EntryType.fields[i].callback($input) : $input.val();
+        for (fieldId in EntryType.fields[i].hideFields[value]) {
+          $("div#hold_field_"+EntryType.fields[i].hideFields[value][fieldId]).hide();
         }
       }
     },
-    addField: function(fieldName, fields, callback) {
+    addField: function(fieldName, hideFields, callback) {
 			var $input = $(":input[name=\'"+fieldName+"\']");
-      EntryType.fields[fieldName] = fields;
-      if (callback !== undefined) {
-        EntryType.callbacks[fieldName] = callback;
-      }
+      EntryType.fields.push({
+        fieldName: fieldName,
+        hideFields: hideFields || [],
+        callback: callback || null
+      });
       $input.change(EntryType.change);
       EntryType.change({target: $input});
     },

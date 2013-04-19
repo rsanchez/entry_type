@@ -99,6 +99,11 @@ class Entry_type {
             $field_name = isset($this->field_names[$field_name]) ? $this->field_names[$field_name] : 'field_id_'.$field_name;
         }
 
+        if (method_exists($this, 'add_'.$field_name.'_field'))
+        {
+            return $this->{'add_'.$field_name.'_field'}($fields);
+        }
+
         $callback = '';
 
         if (method_exists($this, 'callback_'.$field_name))
@@ -106,18 +111,20 @@ class Entry_type {
             $callback = ', '.$this->{'callback_'.$field_name}();
         }
 
-        $this->EE->javascript->output('EntryType.addField('.$this->EE->javascript->generate_json($field_name).', '.$this->EE->javascript->generate_json($fields, TRUE).$callback.');');
+        $this->EE->javascript->output('EntryType.addField('.$this->EE->javascript->generate_json($field_name).', '.$this->EE->javascript->generate_json($fields, TRUE).');');
     }
 
-    protected function callback_structure__parent_id()
+    protected function add_structure_depth_field($fields)
     {
-        return 'function($input) {
+        $callback = 'function($input) {
             var val = $input.val(),
                 label = $input.find("option:selected").text();
                 depth = (val == 0) ? 0 : label.split("--").length;
             
-            return "depth:"+depth;
+            return depth;
         }';
+
+        $this->EE->javascript->output('EntryType.addField("structure__parent_id", '.$this->EE->javascript->generate_json($fields, TRUE).', '.$callback.');');
     }
     
     public function fields($group_id, $exclude_field_id = FALSE)
