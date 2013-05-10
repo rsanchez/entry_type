@@ -28,6 +28,7 @@ class Entry_type_ft extends EE_Fieldtype
 			'field_list_items' => FALSE,
 		),
 		'pt_pill' => array(),
+		'fieldpack_pill' => array(),
 	);
 	
 	public function replace_tag($data, $params = array(), $tagdata = FALSE)
