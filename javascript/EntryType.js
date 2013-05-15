@@ -10,7 +10,10 @@
       var i, j, $input, value, fieldId;
       $holdFields.not(this).each(function(){
         var $this = $(this);
-        $this.show().width($this.data("width"));
+        $this.width($this.data("width"));
+        if ( !$this.data("invisible")) {
+          $this.show();
+        }
       });
       for (i = 0; i < EntryType.fields.length; i++) {
 
@@ -49,6 +52,11 @@
 			var fieldId;
       for (fieldId in widths) {
          $("#hold_field_"+fieldId).data("width", widths[fieldId]);
+      }
+    },
+    setInvisible: function(invisible) {
+      for (var i in invisible) {
+        $("#hold_field_"+invisible[i]).data("invisible", true);
       }
     }
 	};

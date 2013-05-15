@@ -49,7 +49,7 @@ class Entry_type {
             return;
         }
         
-        //fetch field widths from publish layout
+        //fetch field widths/visibility from publish layout
         $this->EE->load->model('member_model');
         
         $layout_group = is_numeric($this->EE->input->get_post('layout_preview')) ? $this->EE->input->get_post('layout_preview') : $this->EE->session->userdata('group_id');
@@ -57,6 +57,7 @@ class Entry_type {
         $layout_info = $this->EE->member_model->get_group_layout($layout_group, $channel_id);
     
         $widths = array();
+        $invisible = array();
         
         if ( ! empty($layout_info))
         {
@@ -64,9 +65,19 @@ class Entry_type {
             {
                 foreach ($tab_fields as $field_name => $field_options)
                 {
-                    if (strncmp($field_name, 'field_id_', 9) === 0 && isset($field_options['width']))
+                    if (strncmp($field_name, 'field_id_', 9) === 0)
                     {
-                        $widths[substr($field_name, 9)] = $field_options['width'];
+                        $field_id = substr($field_name, 9);
+
+                        if (isset($field_options['width']))
+                        {
+                            $widths[$field_id] = $field_options['width'];
+                        }
+
+                        if (isset($field_options['visible']) && ! $field_options['visible'])
+                        {
+                            $invisible[] = $field_id;
+                        }
                     }
                 }
             }
@@ -83,6 +94,8 @@ class Entry_type {
         }
         
         $this->EE->javascript->output('EntryType.setWidths('.$this->EE->javascript->generate_json($widths).');');
+        
+        $this->EE->javascript->output('EntryType.setInvisible('.$this->EE->javascript->generate_json($invisible, TRUE).');');
     }
 
     public function add_field($field_name, $type_options)

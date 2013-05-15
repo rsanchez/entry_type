@@ -7,7 +7,7 @@ class Entry_type_ft extends EE_Fieldtype
 {
 	public $info = array(
 		'name' => 'Entry Type',
-		'version' => '1.0.6',
+		'version' => '1.0.7',
 	);
 
 	public $has_array_data = TRUE;
@@ -28,6 +28,7 @@ class Entry_type_ft extends EE_Fieldtype
 			'field_list_items' => FALSE,
 		),
 		'pt_pill' => array(),
+		'fieldpack_pill' => array(),
 	);
 	
 	public function replace_tag($data, $params = array(), $tagdata = FALSE)
