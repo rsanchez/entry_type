@@ -473,6 +473,8 @@ class Entry_type_ext {
 
             foreach ($row as $field_name => $type_options)
             {
+                $options_by_value = array();
+
                 $settings[$channel_id][$field_name] = array();
 
                 foreach ($type_options as $options)
@@ -496,7 +498,23 @@ class Entry_type_ext {
                         $options['hide_fields'] = array();
                     }
 
-                    $settings[$channel_id][$field_name][$value] = $options;
+                    $serialized = serialize($options);
+
+                    if (isset($options_by_value[$serialized]))
+                    {
+                        unset($settings[$channel_id][$field_name][$options_by_value[$serialized]]);
+
+                        $options_by_value[$serialized] .= '|'.$value;
+
+                        $settings[$channel_id][$field_name][$options_by_value[$serialized]] = $options;
+
+                    }
+                    else
+                    {
+                        $options_by_value[$serialized] = $value;
+
+                        $settings[$channel_id][$field_name][$value] = $options;
+                    }
                 }
 
                 if (empty($settings[$channel_id][$field_name]))
