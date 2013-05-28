@@ -2,7 +2,8 @@
 
   var $holdFields = $("div[id*=hold_field_]").filter(function(){
         return this.id.match(/^hold_field_\d+$/);
-      });
+      }),
+      $tabs = $("#tab_menu_tabs").find("li");
 
 	w.EntryType = {
     fields: [],
@@ -31,6 +32,16 @@
           $("#hold_field_"+EntryType.fields[i].hideFields[value][fieldId]).hide();
         }
       }
+      $tabs.each(function() {
+        var id = this.id.replace(/^menu_/, ""),
+            $tab = $(this),
+            $fieldset = $("#"+id),
+            $visibleFields = $fieldset.find(".publish_field").filter(function() {
+              return $(this).css("display") !== "none";
+            });
+
+        $tab.toggle($visibleFields.length > 0);
+      });
     },
     addField: function(fieldName, hideFields, callback) {
 			var field = {
