@@ -96,6 +96,17 @@ class Entry_type {
         $this->EE->javascript->output('EntryType.setWidths('.$this->EE->javascript->generate_json($widths).');');
         
         $this->EE->javascript->output('EntryType.setInvisible('.$this->EE->javascript->generate_json($invisible, TRUE).');');
+    
+        //show Entry Type-hidden fields when publish layouts are being edited
+        //otherwise the publish layout sees the ET-hidden fields as intentionally
+        //hidden and the layout will save with those fields hidden
+        $this->EE->cp->add_to_head('<style type="text/css">#holder.toolbar-visible .entry-type-hidden { display: block !important; }</style>');
+
+        $this->EE->javascript->output('
+        $("#showToolbarLink > a").on("click", function() {
+            $("#holder").toggleClass("toolbar-visible", $("#tab_menu_tabs").hasClass("ui-sortable"));
+        });
+        ');
     }
 
     public function add_field($field_name, $type_options)
