@@ -100,7 +100,7 @@ class Entry_type {
         //show Entry Type-hidden fields when publish layouts are being edited
         //otherwise the publish layout sees the ET-hidden fields as intentionally
         //hidden and the layout will save with those fields hidden
-        $this->EE->cp->add_to_head('<style type="text/css">#holder.toolbar-visible .entry-type-hidden { display: block !important; }</style>');
+        $this->EE->cp->add_to_head('<style type="text/css">#holder .entry-type-hidden { display: none !important; } #holder.toolbar-visible .entry-type-hidden { display: block !important; }</style>');
 
         $this->EE->javascript->output('
         $("#showToolbarLink > a").on("click", function() {

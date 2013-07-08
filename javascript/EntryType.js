@@ -13,7 +13,7 @@
         var $this = $(this);
         $this.width($this.data("width"));
         if ( !$this.data("invisible")) {
-          $this.removeClass("entry-type-hidden").show();
+          $this.removeClass("entry-type-hidden");
         }
       });
       for (i = 0; i < EntryType.fields.length; i++) {
@@ -29,7 +29,7 @@
         }
 
         for (fieldId in EntryType.fields[i].hideFields[value]) {
-          $("#hold_field_"+EntryType.fields[i].hideFields[value][fieldId]).addClass("entry-type-hidden").hide();
+          $("#hold_field_"+EntryType.fields[i].hideFields[value][fieldId]).addClass("entry-type-hidden");
         }
       }
       $tabs.each(function() {
