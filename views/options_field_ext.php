@@ -1,8 +1,7 @@
 <table width="100%" class="entry_type_options mainTable">
 	<thead>
 		<tr>
-			<th><?=lang('type_value')?></th>
-			<th><?=lang('type_label')?></th>
+			<th><?=lang('Value')?></th>
 			<th><?=lang('hide_fields')?></th>
 			<th style="width:1%;">&nbsp;</th>
 		</tr>
@@ -10,7 +9,7 @@
 	<tbody>
 <?php $i = 0; ?>
 <?php foreach ($type_options as $value => $data) : ?>
-<?=$this->load->view('option_row', array('i' => (string) $i, 'value' => $value, 'label' => $data['label'], 'hide_fields' => $data['hide_fields'], 'fields' => $fields), TRUE)?>
+<?=$this->load->view('option_field_row_ext', array('channel_id' => $channel_id, 'field_name' => $field_name, 'i' => (string) $i, 'value' => explode('|', $value), 'hide_fields' => $data['hide_fields'], 'fields' => $fields, 'value_options' => $value_options), TRUE)?>
 <?php $i++; ?>
 <?php endforeach; ?>
 	</tbody>
