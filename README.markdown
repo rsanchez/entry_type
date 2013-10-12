@@ -1,15 +1,16 @@
 # Entry Type #
 
-A dropdown fieldtype that shows/hides other fields on the publish page.
+An ExpressionEngine add-on for hiding publish fields on a conditional basis. The Entry Type fieldtype creates a dropdown field which can hide other publish fields depending on the value chosen. The Entry Type extension allows you to hide specific publish fields depending on the entry's status, Pages/Structure template, or Structure page depth.
 
-This can be used to create a Tumblr-like experience. You are given the ability to select the "type" of entry, and display certain fields depending on the selected "type". For example, you first add a list of "types" to the Entry Type field: Link, Video, Image, etc. Then you create custom field(s) for each of those types for that field group. Then you can associate certain fields in that group to types, and when you select a type in the dropdown, those associated fields will show, and the others will hide.
+![Entry Type](https://raw.github.com/rsanchez/entry_type/master/images/entry-type.gif)
 
 ## Installation
 
 * Download the addon and rename the folder to `entry_type`
 * Copy to `system/expressionengine/third_party`
+* Install the extension and fieldtype
 
-## Tags
+## Fieldtype Tags
 
 	{your_field_name}
 
@@ -28,6 +29,19 @@ Check whether the specified option is selected. (Use the short name).
 	{/your_field_name}
 
 List all your options.
+
+## Fieldtype Settings
+
+-  Short Name - the value of the field, for use in templates and conditionals
+-  Label - the label for the value
+-  Hide Fields - choose the fields to hide when the specified value is chosen
+
+## Extension Settings
+
+-  Channel - choose one of your channels
+-  Field - choose either Status or Template
+-  Settings: Value - choose the status or template value that will trigger this "type"
+-  Settings: Hide Fields - choose the fields to hide when the specified value is chosen
 
 ## Examples
 
