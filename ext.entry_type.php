@@ -431,7 +431,7 @@ class Entry_type_ext {
                 );
 
                 $this->EE->javascript->output('
-                    new EntryTypeFieldSettings('.$this->EE->javascript->generate_json('#'.$channel_id.'_'.$field_name).', '.$this->EE->javascript->generate_json($options).');
+                    new EntryTypeFieldSettings('.json_encode('#'.$channel_id.'_'.$field_name).', '.json_encode($options).');
                 ');
             }
         }

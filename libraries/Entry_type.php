@@ -93,9 +93,9 @@ class Entry_type {
             $this->EE->cp->add_to_head('<script type="text/javascript">'.file_get_contents(PATH_THIRD.'entry_type/javascript/EntryType.js').'</script>');
         }
         
-        $this->EE->javascript->output('EntryType.setWidths('.$this->EE->javascript->generate_json($widths).');');
+        $this->EE->javascript->output('EntryType.setWidths('.json_encode($widths).');');
         
-        $this->EE->javascript->output('EntryType.setInvisible('.$this->EE->javascript->generate_json($invisible, TRUE).');');
+        $this->EE->javascript->output('EntryType.setInvisible('.json_encode($invisible, TRUE).');');
     
         //show Entry Type-hidden fields when publish layouts are being edited
         //otherwise the publish layout sees the ET-hidden fields as intentionally
@@ -138,7 +138,7 @@ class Entry_type {
             $callback = ', '.$this->{'callback_'.$field_name}();
         }
 
-        $this->EE->javascript->output('EntryType.addField('.$this->EE->javascript->generate_json($field_name).', '.$this->EE->javascript->generate_json($fields, TRUE).');');
+        $this->EE->javascript->output('EntryType.addField('.json_encode($field_name).', '.json_encode($fields).');');
     }
 
     protected function add_structure_parent_field($fields)
@@ -173,7 +173,7 @@ class Entry_type {
             return val;
         }';
 
-        $this->EE->javascript->output('EntryType.addField("structure__parent_id", '.$this->EE->javascript->generate_json($fields, TRUE).', '.$callback.');');
+        $this->EE->javascript->output('EntryType.addField("structure__parent_id", '.json_encode($fields).', '.$callback.');');
     }
 
     protected function add_structure_depth_field($fields)
@@ -186,7 +186,7 @@ class Entry_type {
             return depth;
         }';
 
-        $this->EE->javascript->output('EntryType.addField("structure__parent_id", '.$this->EE->javascript->generate_json($fields, TRUE).', '.$callback.');');
+        $this->EE->javascript->output('EntryType.addField("structure__parent_id", '.json_encode($fields).', '.$callback.');');
     }
     
     public function fields($group_id, $exclude_field_id = FALSE)
@@ -313,8 +313,8 @@ class Entry_type {
 
         $this->EE->javascript->output('
         (function() {
-            var fieldSettings = new EntryTypeFieldSettings("#ft_entry_type", '.$this->EE->javascript->generate_json($row_template).');
-            fieldSettings.deleteConfirmMsg = '.$this->EE->javascript->generate_json(lang('confirm_delete_type')).';
+            var fieldSettings = new EntryTypeFieldSettings("#ft_entry_type", '.json_encode($row_template).');
+            fieldSettings.deleteConfirmMsg = '.json_encode(lang('confirm_delete_type')).';
         })();
         ');
 
