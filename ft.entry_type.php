@@ -7,7 +7,7 @@ class Entry_type_ft extends EE_Fieldtype
 {
 	public $info = array(
 		'name' => 'Entry Type',
-		'version' => '1.1.0',
+		'version' => '1.1.1',
 	);
 
 	public $has_array_data = TRUE;
@@ -343,7 +343,7 @@ class Entry_type_ft extends EE_Fieldtype
 
         $this->EE->cp->load_package_js('EntryTypeFieldSettings');
 
-        $this->EE->javascript->output('new EntryTypeFieldSettings("#ft_entry_type .options", '.$this->EE->javascript->generate_json($options).');');
+        $this->EE->javascript->output('new EntryTypeFieldSettings("#ft_entry_type .options", '.json_encode($options).');');
 		
 		$this->EE->table->add_row(array(
 			lang('field_type'),

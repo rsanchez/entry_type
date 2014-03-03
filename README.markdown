@@ -6,6 +6,7 @@ An ExpressionEngine add-on for hiding publish fields on a conditional basis. The
 
 ## Installation
 
+* Requires PHP 5.2
 * Download the addon and rename the folder to `entry_type`
 * Copy to `system/expressionengine/third_party`
 * Install the extension and fieldtype
