@@ -168,6 +168,12 @@ class Entry_type_ext {
 		{
 			return FALSE;
 		}
+		
+		ee()->db->where('class', __CLASS__);
+    		ee()->db->update(
+                	'extensions',
+                	array('version' => $this->version)
+    		);
 	}
 
     private function ajax_option_row_ext($vars)
