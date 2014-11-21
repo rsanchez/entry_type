@@ -7,7 +7,7 @@ class Entry_type_ft extends EE_Fieldtype
 {
 	public $info = array(
 		'name' => 'Entry Type',
-		'version' => '1.1.1',
+		'version' => '1.1.2',
 	);
 
 	public $has_array_data = TRUE;

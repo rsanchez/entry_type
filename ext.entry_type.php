@@ -31,7 +31,7 @@ class Entry_type_ext {
 	public $docs_url		= '';
 	public $name			= 'Entry Type';
 	public $settings_exist	= 'y';
-	public $version			= '1.1.1';
+	public $version			= '1.1.2';
 	
 	private $EE;
 	
@@ -82,17 +82,27 @@ class Entry_type_ext {
 		// Setup custom settings in this array.
 		$this->settings = array();
 		
-		$data = array(
-			'class'		=> __CLASS__,
-			'method'	=> 'publish_form_channel_preferences',
-			'hook'		=> 'publish_form_channel_preferences',
-			'settings'	=> serialize($this->settings),
-			'version'	=> $this->version,
-			'enabled'	=> 'y'
-		);
+        $data = array(
+            'class'     => __CLASS__,
+            'method'    => 'publish_form_channel_preferences',
+            'hook'      => 'publish_form_channel_preferences',
+            'settings'  => serialize($this->settings),
+            'version'   => $this->version,
+            'enabled'   => 'y'
+        );
 
-		$this->EE->db->insert('extensions', $data);			
-		
+        $this->EE->db->insert('extensions', $data);
+
+        $data = array(
+            'class' => __CLASS__,
+            'method' => 'eecli_add_commands',
+            'hook' => 'eecli_add_commands',
+            'settings' => serialize($this->settings),
+            'version' => $this->version,
+            'enabled' => 'y',
+        );
+
+        $this->EE->db->insert('extensions', $data);
 	}	
 
 	// ----------------------------------------------------------------------
@@ -137,6 +147,26 @@ class Entry_type_ext {
         return isset($this->EE->extensions->extensions['entry_submission_end'][10]['Structure_ext']);
     }
 
+    /**
+     * eecli_add_commands Hook
+     *
+     * @param
+     * @return
+     */
+    public function eecli_add_commands($commands)
+    {
+        if (ee()->extensions->last_call !== FALSE)
+        {
+            $commands = ee()->extensions->last_call;
+        }
+
+        require_once PATH_THIRD.'entry_type/src/CreateFieldEntryTypeCommand.php';
+
+        $commands[] = new CreateFieldEntryTypeCommand();
+
+        return $commands;
+    }
+
 	// ----------------------------------------------------------------------
 
 	/**
@@ -168,6 +198,32 @@ class Entry_type_ext {
 		{
 			return FALSE;
 		}
+
+        $query = $this->EE->db->where('class', __CLASS__)
+            ->limit(1)
+            ->get('extensions');
+
+        $settings = $query->row('settings');
+
+        $query->free_result();
+
+        if (version_compare($current, '1.1.2', '<'))
+        {
+            $this->EE->db->insert('extensions', array(
+                'class' => __CLASS__,
+                'method' => 'eecli_add_commands',
+                'hook' => 'eecli_add_commands',
+                'settings' => $settings,
+                'version' => $this->version,
+                'enabled' => 'y',
+            ));
+        }
+
+        $this->EE->db->update('extensions', array(
+            'version' => $this->version,
+        ), array(
+            'class' => __CLASS__,
+        ));
 	}
 
     private function ajax_option_row_ext($vars)
