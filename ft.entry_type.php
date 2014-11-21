@@ -280,8 +280,6 @@ class Entry_type_ft extends EE_Fieldtype
 		
 		$this->EE->api->instantiate('channel_fields');
 		
-		$this->EE->api_channel_fields = new Api_channel_fields;
-		
 		$all_fieldtypes = $this->EE->api_channel_fields->fetch_all_fieldtypes();
 		
 		$types = array();
