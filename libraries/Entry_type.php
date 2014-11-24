@@ -95,7 +95,7 @@ class Entry_type {
         
         $this->EE->javascript->output('EntryType.setWidths('.json_encode($widths).');');
         
-        $this->EE->javascript->output('EntryType.setInvisible('.json_encode($invisible, TRUE).');');
+        $this->EE->javascript->output('EntryType.setInvisible('.json_encode($invisible).');');
     
         //show Entry Type-hidden fields when publish layouts are being edited
         //otherwise the publish layout sees the ET-hidden fields as intentionally
