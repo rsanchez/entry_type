@@ -110,7 +110,35 @@ class Entry_type_ft extends EE_Fieldtype
 
 		$this->EE->load->library('entry_type');
 
-		$this->EE->entry_type->init($this->EE->input->get_post('channel_id'));
+		$channel_id = $this->EE->input->get_post('channel_id');
+
+		if ( ! $channel_id)
+		{
+			$entry_id = $this->EE->input->get_post('entry_id');
+
+			if ($entry_id)
+			{
+				$query = $this->EE->db->select('channel_id')
+					->where('entry_id', $entry_id)
+					->get('channel_titles');
+
+				$channel_id = $query->row('channel_id');
+
+				$query->free_result();
+			}
+			else
+			{
+				$query = $this->EE->db->select('channel_id')
+					->limit(1)
+					->get('channels');
+
+				$channel_id = $query->row('channel_id');
+
+				$query->free_result();
+			}
+		}
+
+		$this->EE->entry_type->init($channel_id);
 
 		$this->EE->entry_type->add_field($this->field_name, $this->settings['type_options']);
 		
