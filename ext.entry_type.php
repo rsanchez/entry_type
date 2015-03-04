@@ -31,7 +31,7 @@ class Entry_type_ext {
 	public $docs_url		= '';
 	public $name			= 'Entry Type';
 	public $settings_exist	= 'y';
-	public $version			= '1.1.2';
+	public $version			= '1.1.3';
 	
 	private $EE;
 	
@@ -223,6 +223,12 @@ class Entry_type_ext {
             'version' => $this->version,
         ), array(
             'class' => __CLASS__,
+        ));
+
+        $this->EE->db->update('fieldtypes', array(
+            'version' => $this->version,
+        ), array(
+            'name' => 'entry_type',
         ));
 	}
 
