@@ -313,11 +313,13 @@ class Entry_type_ext {
         $vars['value_options'] = array(
             'status' => array(),
             $template_field_name => array(),
+            'new_channel' => array(),
         );
 
         $vars['fields_by_id'] = array('' => array());
 
         $channels_by_field_group = array();
+        $channel_titles_by_field_group = array();
 
         $vars['channels'] = array(
             '' => 'Choose a channel',
@@ -329,17 +331,22 @@ class Entry_type_ext {
 
         foreach ($query->result() as $row)
         {
+            $channels_by_field_group[$row->field_group][] = $row->channel_id;
+            $channel_titles_by_field_group[$row->field_group][] = $row->channel_title;
+            $channels_by_status_group[$row->status_group][] = $row->channel_id;
+        }
+
+        foreach ($query->result() as $row)
+        {
             $vars['channels'][$row->channel_id] = $row->channel_title;
 
             $vars['fields_by_id'][$row->channel_id] = array();
 
-            $channels_by_field_group[$row->field_group][] = $row->channel_id;
-
-            $channels_by_status_group[$row->status_group][] = $row->channel_id;
-
             $vars['value_options'][$template_field_name][$row->channel_id] = $templates;
 
             $vars['value_options']['status'][$row->channel_id] = array('open' => lang('open'), 'closed' => lang('closed'));
+
+            $vars['value_options']['new_channel'][$row->channel_id] = array_combine($channels_by_field_group[$row->field_group], $channel_titles_by_field_group[$row->field_group]);
         }
 
         $query->free_result();
@@ -400,6 +407,7 @@ class Entry_type_ext {
             '' => 'Choose a field',
             'status' => 'Status',
             $this->is_structure_installed() ? 'structure__template_id' : 'pages__pages_template_id' => 'Template',
+            'new_channel' => 'Channel',
         );
 
         if ($this->is_structure_installed())
