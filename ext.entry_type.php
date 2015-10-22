@@ -31,7 +31,7 @@ class Entry_type_ext {
 	public $docs_url		= '';
 	public $name			= 'Entry Type';
 	public $settings_exist	= 'y';
-	public $version			= '1.1.3';
+	public $version			= '1.1.4';
 	
 	private $EE;
 	
