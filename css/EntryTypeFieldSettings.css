@@ -1,0 +1,20 @@
+.entry_type_remove_row:before {
+    content: '\f1f8';
+    color: #1f80bd;
+    font-family: FontAwesome;
+    display: inline-block;
+    -webkit-font-smoothing: antialiased;
+    font-size: 1.5em;
+}
+
+.entry_type_options tbody tr:last-child td {
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.entry_type_hide_fields {
+    display: block;
+}
+
+.entry_type_add_row .icon.plus:before {
+    content: '\f067';
+}

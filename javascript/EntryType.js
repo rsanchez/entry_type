@@ -1,9 +1,17 @@
 (function(w) {
 
-  var $holdFields = $("div[id*=hold_field_]").filter(function(){
+  $("form.settings fieldset").each(function() {
+    var $fieldset = $(this);
+    var $input = $fieldset.find('[name^=field_id_]:first').each(function() {
+      var match = this.name.match(/^field_id_(\d+)/);
+      $fieldset.attr("id", 'hold_field_'+match[1]);
+    });
+  });
+
+  var $holdFields = $("fieldset[id^=hold_field_]").filter(function(){
         return this.id.match(/^hold_field_\d+$/);
       }),
-      $tabs = $("#tab_menu_tabs").find("li");
+      $tabs = $(".tab-wrap").find("li");
 
 	w.EntryType = {
     fields: [],
@@ -11,7 +19,6 @@
       var i, j, $input, value, fieldId;
       $holdFields.not(this).each(function(){
         var $this = $(this);
-        $this.width($this.data("width"));
         if ( !$this.data("invisible")) {
           $this.removeClass("entry-type-hidden");
         }
@@ -58,12 +65,6 @@
       EntryType.fields.push(field);
 
       $.proxy(EntryType.change, field.$input)();
-    },
-    setWidths: function(widths) {
-			var fieldId;
-      for (fieldId in widths) {
-         $("#hold_field_"+fieldId).data("width", widths[fieldId]);
-      }
     },
     setInvisible: function(invisible) {
       for (var i in invisible) {

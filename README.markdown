@@ -1,14 +1,13 @@
-# Entry Type #
+# Entry Type
 
-An ExpressionEngine add-on for hiding publish fields on a conditional basis. The Entry Type fieldtype creates a dropdown field which can hide other publish fields depending on the value chosen. The Entry Type extension allows you to hide specific publish fields depending on the entry's status, Pages/Structure template, or Structure page depth.
+An ExpressionEngine 3 add-on for hiding publish fields on a conditional basis. The Entry Type fieldtype creates a dropdown field which can hide other publish fields depending on the value chosen.
 
-![Entry Type](https://raw.github.com/rsanchez/entry_type/master/images/entry-type.gif)
+Use the [`ee2`](/rsanchez/entry_type/tree/ee2) branch for an EE2 compatible version. Structure/Pages module compatibility has been removed in the EE3 version.
 
 ## Installation
 
-* Requires PHP 5.2
-* Download the addon and rename the folder to `entry_type`
-* Copy to `system/expressionengine/third_party`
+* Requires PHP 5.3
+* Copy to `system/user/addons`
 * Install the extension and fieldtype
 
 ## Fieldtype Tags
@@ -37,13 +36,6 @@ List all your options.
 -  Label - the label for the value
 -  Hide Fields - choose the fields to hide when the specified value is chosen
 
-## Extension Settings
-
--  Channel - choose one of your channels
--  Field - choose either Status or Template
--  Settings: Value - choose the status or template value that will trigger this "type"
--  Settings: Hide Fields - choose the fields to hide when the specified value is chosen
-
 ## Examples
 
 Displaying different content based on entry type.
@@ -58,27 +50,4 @@ Displaying different content based on entry type.
 	{if:elseif your_entry_type_field == 'image'}
 		{image}
 	{/if}
-	{/exp:channel:entries}
-
-
-Use with [Switchee](https://github.com/croxton/Switchee):
-
-	
-	{exp:channel:entries}
-	{title}<br />
-	{exp:switchee variable = "{your_entry_type_field}" parse="inward"}
-	
-		{case value="link"}
-		{link_url}
-		{/case}
-	
-		{case value="video"}
-		{video}
-		{/case}
-
-		{case value="image"}
-		{image}
-		{/case}
-	
-	{/exp:switchee}
 	{/exp:channel:entries}

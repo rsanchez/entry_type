@@ -14,5 +14,11 @@
 <?php $i++; ?>
 <?php endforeach; ?>
 	</tbody>
+	<thead>
+		<tr>
+			<td colspan="4">
+				<a href="javascript:void(0);" class="btn entry_type_add_row"><i class="icon plus"></i><?=lang('add_type')?></a>
+			</td>
+		</tr>
+	</thead>
 </table>
-<p><a href="javascript:void(0);" class="entry_type_add_row"><?=lang('add_type')?></a></p>
