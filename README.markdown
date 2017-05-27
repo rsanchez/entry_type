@@ -7,6 +7,7 @@ Use the [`ee2`](/rsanchez/entry_type/tree/ee2) branch for an EE2 compatible vers
 ## Installation
 
 * Requires PHP 5.3
+* Download the addon and rename the folder to `entry_type`
 * Copy to `system/user/addons`
 * Install the extension and fieldtype
 
