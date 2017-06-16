@@ -11,7 +11,7 @@
   var $holdFields = $("fieldset[id^=hold_field_]").filter(function(){
         return this.id.match(/^hold_field_\d+$/);
       }),
-      $tabs = $(".tab-wrap").find("li");
+      $tabs = $(".tab-wrap .tabs").find("li");
 
 	w.EntryType = {
     fields: [],
@@ -40,10 +40,10 @@
         }
       }
       $tabs.each(function() {
-        var id = this.id.replace(/^menu_/, ""),
+        var tabNum = $(this).find("a").attr("rel"),
             $tab = $(this),
-            $fieldset = $("#"+id),
-            $visibleFields = $fieldset.find(".publish_field").filter(function() {
+            $tabContents = $("div.tab."+tabNum),
+            $visibleFields = $tabContents.find("fieldset").filter(function() {
               return $(this).css("display") !== "none";
             });
 
