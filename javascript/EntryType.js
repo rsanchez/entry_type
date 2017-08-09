@@ -9,9 +9,32 @@
   });
 
   var $holdFields = $("fieldset[id^=hold_field_]").filter(function(){
-        return this.id.match(/^hold_field_\d+$/);
+        var match = this.id.match(/^hold_field_(\d+)$/);
+
+        if (match) {
+          $(this).addClass('entry-type-field-'+match[1]);
+
+          return true;
+        }
+
+        return false;
       }),
       $tabs = $(".tab-wrap .tabs").find("li");
+
+  // add grid fields
+  var $gridHoldFields = $(".grid-publish").filter(function() {
+    var match = $(this).find(".grid-input-form").attr("id").match(/^field_id_(\d+)$/);
+
+    if (match) {
+      $(this).addClass('entry-type-field-'+match[1]);
+
+      return true;
+    }
+
+    return false;
+  });
+
+  $holdFields = $holdFields.add($gridHoldFields);
 
 	w.EntryType = {
     fields: [],
@@ -36,14 +59,14 @@
         }
 
         for (fieldId in EntryType.fields[i].hideFields[value]) {
-          $("#hold_field_"+EntryType.fields[i].hideFields[value][fieldId]).addClass("entry-type-hidden");
+          $(".entry-type-field-"+EntryType.fields[i].hideFields[value][fieldId]).addClass("entry-type-hidden");
         }
       }
       $tabs.each(function() {
         var tabNum = $(this).find("a").attr("rel"),
             $tab = $(this),
             $tabContents = $("div.tab."+tabNum),
-            $visibleFields = $tabContents.find("fieldset").filter(function() {
+            $visibleFields = $tabContents.find("fieldset, .grid-publish, .alert").filter(function() {
               return $(this).css("display") !== "none";
             });
 
@@ -68,7 +91,7 @@
     },
     setInvisible: function(invisible) {
       for (var i in invisible) {
-        $("#hold_field_"+invisible[i]).data("invisible", true);
+        $(".entry-type-field-"+invisible[i]).data("invisible", true);
       }
     }
 	};
