@@ -2,7 +2,7 @@
 
 return array(
     'name'              => 'Entry Type',
-    'version'           => '3.0.1',
+    'version'           => '3.1.0',
     'description'       => 'A fieldtype for hiding publish fields on a conditional basis.',
     'namespace'         => '\\',
     'author'            => 'Rob Sanchez',
