@@ -339,4 +339,9 @@ class Entry_type_ft extends EE_Fieldtype
 
         return $settings;
     }
+
+    public function update($version = '')
+    {
+        return true;
+    }
 }
