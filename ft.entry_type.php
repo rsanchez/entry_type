@@ -93,8 +93,16 @@ class Entry_type_ft extends EE_Fieldtype
 
         $channel_id = ee()->input->get_post('channel_id');
 
+        if (REQ === 'CP' && ee()->uri->segment(3) === 'create') {
+            $channel_id = ee()->uri->segment(4);
+        }
+
         if (!$channel_id) {
             $entry_id = ee()->input->get_post('entry_id');
+
+            if (REQ === 'CP' && ee()->uri->segment(4) === 'entry') {
+                $entry_id = ee()->uri->segment(5);
+            }
 
             if ($entry_id) {
                 $query = ee()->db->select('channel_id')
