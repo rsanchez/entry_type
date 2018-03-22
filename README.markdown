@@ -1,8 +1,10 @@
 # Entry Type
 
-An ExpressionEngine 3 add-on for hiding publish fields on a conditional basis. The Entry Type fieldtype creates a dropdown field which can hide other publish fields depending on the value chosen.
+An ExpressionEngine 4 add-on for hiding publish fields on a conditional basis. The Entry Type fieldtype creates a dropdown field which can hide other publish fields depending on the value chosen.
 
 Use the [`ee2`](/rsanchez/entry_type/tree/ee2) branch for an EE2 compatible version. Structure/Pages module compatibility has been removed in the EE3 version.
+
+Use the [`ee3`](/rsanchez/entry_type/tree/ee3) branch for an EE3 compatible version.
 
 ## Installation
 
