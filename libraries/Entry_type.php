@@ -12,9 +12,10 @@ class Entry_type
 
         ee()->session->set_cache('entry_type', 'display_field', true);
 
-        $query = ee()->db->select('field_id, field_name')
-                                ->join('channels', 'channels.field_group = channel_fields.group_id')
-                                ->where('channel_id', $channel_id)
+        $query = ee()->db->select('channel_fields.field_id, channel_fields.field_name')
+                                ->join('channel_field_groups_fields', 'channel_field_groups_fields.field_id = channel_fields.field_id')
+                                ->join('channels_channel_field_groups', 'channels_channel_field_groups.group_id = channel_field_groups_fields.group_id')
+                                ->where('channels_channel_field_groups.channel_id', $channel_id)
                                 ->get('channel_fields');
 
         foreach ($query->result() as $row) {

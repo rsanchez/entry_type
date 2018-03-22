@@ -1,6 +1,6 @@
 (function(w) {
 
-  $("form.settings fieldset").each(function() {
+  $("form.ajax-validate fieldset").each(function() {
     var $fieldset = $(this);
     var $input = $fieldset.find('[name^=field_id_]:first').each(function() {
       var match = this.name.match(/^field_id_(\d+)/);
@@ -22,7 +22,7 @@
       $tabs = $(".tab-wrap .tabs").find("li");
 
   // add grid fields
-  var $gridHoldFields = $(".grid-publish").filter(function() {
+  var $gridHoldFields = $(".fieldset-faux").filter(function() {
     var match = $(this).find(".grid-input-form").attr("id").match(/^field_id_(\d+)$/);
 
     if (match) {
@@ -66,7 +66,7 @@
         var tabNum = $(this).find("a").attr("rel"),
             $tab = $(this),
             $tabContents = $("div.tab."+tabNum),
-            $visibleFields = $tabContents.find("fieldset, .grid-publish, .alert").filter(function() {
+            $visibleFields = $tabContents.find("fieldset, .fieldset-faux, .alert").filter(function() {
               return $(this).css("display") !== "none";
             });
 

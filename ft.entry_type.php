@@ -147,13 +147,11 @@ class Entry_type_ft extends EE_Fieldtype
 
     private function display_field_radio($options, $current_value = '')
     {
-        $output = form_fieldset('');
+        $output = '';
 
         foreach($options as $value => $label) {
             $output .= form_label(form_radio($this->field_name, $value, $value == $current_value).NBS.$label);
         }
-
-        $output .= form_fieldset_close();
 
         return $output;
     }
@@ -214,17 +212,17 @@ class Entry_type_ft extends EE_Fieldtype
 
         ee()->load->helper('array');
 
-        $action = ee()->uri->segment(4);
+        $action = ee()->uri->segment(3);
 
         if ($action === 'create') {
-            $this->settings['group_id'] = ee()->uri->segment(5);
+            $this->settings['group_id'] = ee()->uri->segment(4);
 
             $this->field_id = null;
         } else {
-            $this->field_id = ee()->uri->segment(5);
+            $this->field_id = ee()->uri->segment(4);
 
             $query = ee()->db->select('group_id')
-                ->from('channel_fields')
+                ->from('channel_field_groups_fields')
                 ->where('field_id', $this->field_id)
                 ->get();
 
