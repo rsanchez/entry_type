@@ -62,7 +62,7 @@ class Entry_type
             ee()->cp->add_to_head('<script type="text/javascript">'.file_get_contents(PATH_THIRD.'entry_type/javascript/EntryType.js').'</script>');
         }
 
-        ee()->cp->add_to_head('<style type="text/css">.entry-type-hidden { position: absolute !important; left: -9999px !important; }</style>');
+        ee()->cp->add_to_head('<style type="text/css">.entry-type-hidden { position: absolute !important; left: -9999px !important; visibility: hidden; display: none; }</style>');
 
         ee()->load->library('javascript');
 
