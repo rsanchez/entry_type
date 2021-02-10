@@ -2,32 +2,47 @@
 
 class Entry_type_ft extends EE_Fieldtype
 {
-    public $info = array(
+    /**
+     * @var array
+     */
+    public $info = [
         'name' => 'Entry Type',
         'version' => '4.0.0',
-    );
+    ];
 
+    /**
+     * @var bool
+     */
     public $has_array_data = true;
 
-    protected $fieldtypes = array(
-        'select' => array(
+    /**
+     * @var array
+     */
+    protected $fieldtypes = [
+        'select' => [
             'field_text_direction' => 'ltr',
             'field_pre_populate' => 'n',
             'field_pre_field_id' => false,
             'field_pre_channel_id' => false,
             'field_list_items' => false,
-        ),
-        'radio' => array(
+        ],
+        'radio' => [
             'field_text_direction' => 'ltr',
             'field_pre_populate' => 'n',
             'field_pre_field_id' => false,
             'field_pre_channel_id' => false,
             'field_list_items' => false,
-        ),
-        'fieldpack_pill' => array(),
-    );
+        ],
+        'fieldpack_pill' => [],
+    ];
 
-    public function replace_tag($data, $params = array(), $tagdata = false)
+    /**
+     * @param mixed $data
+     * @param array $params
+     * @param bool  $tagdata
+     * @return string
+     */
+    public function replace_tag($data, $params = [], $tagdata = false)
     {
         if ($tagdata && isset($params['all_options']) && $params['all_options'] === 'yes') {
             return $this->replace_all_options($data, $params, $tagdata);
@@ -36,7 +51,13 @@ class Entry_type_ft extends EE_Fieldtype
         return $data;
     }
 
-    public function replace_label($data, $params = array(), $tagdata = false)
+    /**
+     * @param mixed $data
+     * @param array $params
+     * @param bool  $tagdata
+     * @return string
+     */
+    public function replace_label($data, $params = [], $tagdata = false)
     {
         foreach ($this->settings['type_options'] as $value => $option) {
             if ($data == $value) {
@@ -47,7 +68,13 @@ class Entry_type_ft extends EE_Fieldtype
         return $data;
     }
 
-    public function replace_selected($data, $params = array(), $tagdata = false)
+    /**
+     * @param mixed $data
+     * @param array $params
+     * @param bool  $tagdata
+     * @return string
+     */
+    public function replace_selected($data, $params = [], $tagdata = false)
     {
         if (!isset($params['option'])) {
             return 0;
@@ -56,14 +83,20 @@ class Entry_type_ft extends EE_Fieldtype
         return (int) ($data == $params['option']);
     }
 
-    public function replace_all_options($data, $params = array(), $tagdata = false)
+    /**
+     * @param mixed $data
+     * @param array $params
+     * @param bool  $tagdata
+     * @return string
+     */
+    public function replace_all_options($data, $params = [], $tagdata = false)
     {
-        $vars = array();
+        $vars = [];
 
         foreach ($this->settings['type_options'] as $value => $option) {
             $label = (!empty($option['label'])) ? $option['label'] : $value;
 
-            $vars[] = array(
+            $vars[] = [
                 'value' => $value,
                 'option' => $value,
                 'option_value' => $value,
@@ -71,19 +104,23 @@ class Entry_type_ft extends EE_Fieldtype
                 'option_label' => $label,
                 'label' => $label,
                 'selected' => (int) ($data == $value),
-            );
+            ];
         }
 
         if (!$vars) {
-            $vars[] = array();
+            $vars[] = [];
         }
 
         return ee()->TMPL->parse_variables($tagdata, $vars);
     }
 
+    /**
+     * @param mixed $data
+     * @return string
+     */
     public function display_field($data)
     {
-        $options = array();
+        $options = [];
 
         foreach ($this->settings['type_options'] as $value => $row) {
             $options[$value] = (!empty($row['label'])) ? $row['label'] : $value;
@@ -105,6 +142,7 @@ class Entry_type_ft extends EE_Fieldtype
             }
 
             if ($entry_id) {
+                /** @var CI_DB_result $query */
                 $query = ee()->db->select('channel_id')
                     ->where('entry_id', $entry_id)
                     ->get('channel_titles');
@@ -113,6 +151,7 @@ class Entry_type_ft extends EE_Fieldtype
 
                 $query->free_result();
             } else {
+                /** @var CI_DB_result $query */
                 $query = ee()->db->select('channel_id')
                     ->limit(1)
                     ->get('channels');
@@ -124,7 +163,6 @@ class Entry_type_ft extends EE_Fieldtype
         }
 
         ee()->entry_type->init($channel_id);
-
         ee()->entry_type->add_field($this->field_name, $this->settings['type_options']);
 
         if (!empty($this->settings['fieldtype'])) {
@@ -145,7 +183,12 @@ class Entry_type_ft extends EE_Fieldtype
         return $this->display_field_select($options, $data);
     }
 
-    private function display_field_radio($options, $current_value = '')
+    /**
+     * @param array  $options
+     * @param string $current_value
+     * @return string
+     */
+    private function display_field_radio(array $options = [], $current_value = '')
     {
         $output = '';
 
@@ -156,12 +199,71 @@ class Entry_type_ft extends EE_Fieldtype
         return $output;
     }
 
-    private function display_field_select($options, $current_value = '')
+    /**
+     * @param array  $options
+     * @param string $current_value
+     * @return string
+     */
+    private function display_field_select(array $options = [], $current_value = '')
     {
         return form_dropdown($this->field_name, $options, $current_value);
     }
 
-    protected function fields($group_id = false, $exclude_field_id = false)
+    /**
+     * Given a fieldId, find out what channel(s) it's assigned to and get all the custom fields for those channels.
+     * @param int  $fieldId
+     * @param bool $excludeFieldId
+     */
+    protected function fieldsByChannel(int $fieldId, bool $excludeFieldId = false)
+    {
+        /** @var CI_DB_result $result */
+        $result = ee()->db
+            ->select('channel_id')
+            ->where('field_id', $fieldId)
+            ->group_by('channel_id')
+            ->get('channels_channel_fields');
+
+        $channelIds = array_column($result->result_array(), 'channel_id');
+
+        if (empty($channelIds)) {
+            return [];
+        }
+
+        $channels = ee('Model')->get('Channel')
+            ->with('CustomFields')
+            ->filter('channel_id', 'IN', $channelIds)
+            ->all();
+
+        $fields = [];
+
+        /** @var Channel $channel */
+        foreach ($channels as $channel) {
+            $customFields = $channel->getAllCustomFields();
+
+            foreach ($customFields as $customField) {
+                $fields[$customField->field_id] = $customField->field_label;
+            }
+        }
+
+        if ($excludeFieldId) {
+            foreach ($fields as $field_id => $field_label) {
+                if ($excludeFieldId == $field_id) {
+                    unset($fields[$field_id]);
+
+                    break;
+                }
+            }
+        }
+
+        return $fields;
+    }
+
+    /**
+     * @param int|bool $group_id
+     * @param bool $exclude_field_id
+     * @return array|mixed
+     */
+    protected function fieldsByGroup($group_id = false, bool $exclude_field_id = false)
     {
         static $cache;
 
@@ -169,7 +271,7 @@ class Entry_type_ft extends EE_Fieldtype
             if (isset($this->settings['group_id'])) {
                 $group_id = $this->settings['group_id'];
             } else {
-                return array();
+                return [];
             }
         }
 
@@ -180,9 +282,10 @@ class Entry_type_ft extends EE_Fieldtype
         if (!isset($cache[$group_id])) {
             ee()->load->model('field_model');
 
+            /** @var CI_DB_result $query */
             $query = ee()->field_model->get_fields($group_id);
 
-            $cache[$group_id] = array();
+            $cache[$group_id] = [];
 
             foreach ($query->result() as $row) {
                 $cache[$group_id][$row->field_id] = $row->field_label;
@@ -206,10 +309,13 @@ class Entry_type_ft extends EE_Fieldtype
         return $fields;
     }
 
-    public function display_settings($settings)
+    /**
+     * @param array $settings
+     * @return array|string
+     */
+    public function display_settings($settings = [])
     {
         ee()->load->library('entry_type');
-
         ee()->load->helper('array');
 
         $action = ee()->uri->segment(3);
@@ -230,12 +336,11 @@ class Entry_type_ft extends EE_Fieldtype
         }
 
         ee()->load->library('api');
-
         ee()->legacy_api->instantiate('channel_fields');
 
         $all_fieldtypes = ee()->api_channel_fields->fetch_all_fieldtypes();
 
-        $types = array();
+        $types = [];
 
         foreach ($all_fieldtypes as $row) {
             $type = strtolower(str_replace('_ft', '', $row['class']));
@@ -246,28 +351,28 @@ class Entry_type_ft extends EE_Fieldtype
         }
 
         ee()->lang->loadfile('entry_type', 'entry_type');
+        ee()->load->helper(['array', 'html']);
+        ee()->cp->add_js_script(['ui' => ['sortable']]);
 
-        ee()->load->helper(array('array', 'html'));
-
-        ee()->cp->add_js_script(array('ui' => array('sortable')));
-
-        $vars['fields'] = array();
+        $vars['fields'] = [];
 
         if (!empty($this->settings['group_id'])) {
-            $vars['fields'] = $this->fields($this->settings['group_id'], $this->field_id);
+            $vars['fields'] = $this->fieldsByGroup($this->settings['group_id'], $this->field_id);
+        } elseif (!empty($this->settings['field_id'])) {
+            $vars['fields'] = $this->fieldsByChannel($this->settings['field_id'], $this->field_id);
         }
 
         if (empty($settings['type_options'])) {
-            $vars['type_options'] = array(
-                '' => array(
-                    'hide_fields' => array(),
+            $vars['type_options'] = [
+                '' => [
+                    'hide_fields' => [],
                     'label' => '',
-                ),
-            );
+                ],
+            ];
         } else {
             foreach ($settings['type_options'] as $value => $option) {
                 if (!isset($option['hide_fields'])) {
-                    $settings['type_options'][$value]['hide_fields'] = array();
+                    $settings['type_options'][$value]['hide_fields'] = [];
                 }
 
                 if (!isset($option['label'])) {
@@ -278,48 +383,46 @@ class Entry_type_ft extends EE_Fieldtype
             $vars['type_options'] = $settings['type_options'];
         }
 
-        $options = array(
-            'rowTemplate' => preg_replace('/[\r\n\t]/', '', ee()->load->view('option_row', array('key' => 0, 'i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => array(), 'fields' => $vars['fields']), true)),
+        $options = [
+            'rowTemplate' => preg_replace('/[\r\n\t]/', '', ee()->load->view('option_row', ['key' => 0, 'i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => [], 'fields' => $vars['fields']], true)),
             'deleteConfirmMsg' => lang('confirm_delete_type'),
-        );
+        ];
 
         ee()->cp->load_package_js('EntryTypeFieldSettings');
-
         ee()->cp->load_package_css('EntryTypeFieldSettings');
-
         ee()->javascript->output('new EntryTypeFieldSettings(".entry_type_options", '.json_encode($options).');');
 
-        return array('field_options_entry_type' => array(
+        return ['field_options_entry_type' => [
             'label' => 'field_options',
             'group' => 'entry_type',
-            'settings' => array(
-                array(
+            'settings' => [
+                [
                     'title' => lang('field_type'),
-                    'fields' => array(
-                        'entry_type_fieldtype' => array(
+                    'fields' => [
+                        'entry_type_fieldtype' => [
                             'type' => 'select',
                             'choices' => $types,
                             'value' => isset($settings['fieldtype']) ? $settings['fieldtype'] : null,
-                        ),
-                    ),
-                ),
-                array(
+                        ],
+                    ],
+                ],
+                [
                     'title' => lang('types'),
-                    'fields' => array(
-                        'entry_type_type_options' => array(
+                    'fields' => [
+                        'entry_type_type_options' => [
                             'type' => 'html',
                             'content' => ee()->load->view('options', $vars, true),
                             'class' => 'options',
-                        ),
-                    ),
-                ),
-            ),
-        ));
+                        ],
+                    ],
+                ],
+            ],
+        ]];
     }
 
     public function save_settings($data)
     {
-        $settings['type_options'] = array();
+        $settings['type_options'] = [];
 
         if (isset($data['entry_type_options'][0]) && is_array($data['entry_type_options'][0])) {
             foreach ($data['entry_type_options'][0] as $row) {
@@ -339,7 +442,7 @@ class Entry_type_ft extends EE_Fieldtype
             }
         }
 
-        $settings['blank_hide_fields'] = (isset($data['entry_type_blank_hide_fields'])) ? $data['entry_type_blank_hide_fields'] : array();
+        $settings['blank_hide_fields'] = (isset($data['entry_type_blank_hide_fields'])) ? $data['entry_type_blank_hide_fields'] : [];
 
         $settings['fieldtype'] = (isset($data['entry_type_fieldtype'])) ? $data['entry_type_fieldtype'] : 'select';
 
