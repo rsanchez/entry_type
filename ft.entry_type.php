@@ -315,6 +315,16 @@ class Entry_type_ft extends EE_Fieldtype
      */
     public function display_settings($settings = [])
     {
+        if (!$this->field_id) {
+            return ['field_options_entry_type' => [
+                'label' => 'field_options',
+                'group' => 'entry_type',
+                'settings' => [
+                    'This field must first be created and assigned to a Field Group or Channel, then edit the field to change it\'s options.'
+                ]
+            ]];
+        }
+
         ee()->load->library('entry_type');
         ee()->load->helper('array');
 
@@ -327,6 +337,7 @@ class Entry_type_ft extends EE_Fieldtype
         } else {
             $this->field_id = ee()->uri->segment(4);
 
+            /** @var CI_DB_result $query */
             $query = ee()->db->select('group_id')
                 ->from('channel_field_groups_fields')
                 ->where('field_id', $this->field_id)
@@ -360,6 +371,16 @@ class Entry_type_ft extends EE_Fieldtype
             $vars['fields'] = $this->fieldsByGroup($this->settings['group_id'], $this->field_id);
         } elseif (!empty($this->settings['field_id'])) {
             $vars['fields'] = $this->fieldsByChannel($this->settings['field_id'], $this->field_id);
+        }
+
+        if (empty($vars['fields'])) {
+            return ['field_options_entry_type' => [
+                'label' => 'field_options',
+                'group' => 'entry_type',
+                'settings' => [
+                    'This field must first be assigned to a Field Group or Channel, then edit the field to change it\'s options.'
+                ]
+            ]];
         }
 
         if (empty($settings['type_options'])) {
