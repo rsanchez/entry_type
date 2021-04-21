@@ -320,7 +320,10 @@ class Entry_type_ft extends EE_Fieldtype
                 'label' => 'field_options',
                 'group' => 'entry_type',
                 'settings' => [
-                    'This field must first be created and assigned to a Field Group or Channel, then edit the field to change it\'s options.'
+                    [
+                        'title' => 'This field must first be assigned to a Field Group or Channel, then edit the field to change it\'s options.',
+                        'fields' => [],
+                    ],
                 ]
             ]];
         }
@@ -378,7 +381,10 @@ class Entry_type_ft extends EE_Fieldtype
                 'label' => 'field_options',
                 'group' => 'entry_type',
                 'settings' => [
-                    'This field must first be assigned to a Field Group or Channel, then edit the field to change it\'s options.'
+                    [
+                        'title' => 'This field must first be assigned to a Field Group or Channel, then edit the field to change it\'s options.',
+                        'fields' => [],
+                    ],
                 ]
             ]];
         }
