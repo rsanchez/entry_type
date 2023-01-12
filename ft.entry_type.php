@@ -16,6 +16,11 @@ class Entry_type_ft extends EE_Fieldtype
     public $has_array_data = true;
 
     /**
+     * @var bool
+     */
+    public $entry_manager_compatible = true;
+
+    /**
      * @var array
      */
     protected $fieldtypes = [
