@@ -231,8 +231,6 @@ class Entry_type_ft extends EE_Fieldtype
 
         ee()->load->library('api');
 
-        ee()->legacy_api->instantiate('channel_fields');
-
         $all_fieldtypes = ee()->api_channel_fields->fetch_all_fieldtypes();
 
         $types = array();

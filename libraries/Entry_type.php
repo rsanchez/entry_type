@@ -6,19 +6,24 @@ class Entry_type
 
     public function init($channel_id)
     {
-        if (ee()->session->cache('entry_type', 'display_field')) {
+        if (ee()->session->cache("entry_type", "display_field")) {
             return;
         }
 
-        ee()->session->set_cache('entry_type', 'display_field', true);
+        if (!$channel_id) {
+            return;
+        }
 
-        $query = ee()->db->select('channel_fields.field_id, channel_fields.field_name')
-                                ->join('channel_field_groups_fields', 'channel_field_groups_fields.field_id = channel_fields.field_id')
-                                ->join('channels_channel_field_groups', 'channels_channel_field_groups.group_id = channel_field_groups_fields.group_id')
-                                ->where('channels_channel_field_groups.channel_id', $channel_id)
-                                ->get('channel_fields');
+        ee()->session->set_cache("entry_type", "display_field", true);
 
-        foreach ($query->result() as $row) {
+        $channel = ee("Model")
+            ->get("Channel")
+            ->filter("channel_id", $channel_id)
+            ->first();
+
+        $fields = $channel->getAllCustomFields();
+
+        foreach ($fields as $row) {
             $this->field_names[$row->field_id] = REQ === 'CP' ? 'field_id_'.$row->field_id : $row->field_name;
         }
 
