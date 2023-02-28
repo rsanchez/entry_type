@@ -18,3 +18,13 @@
 .entry_type_add_row .icon.plus:before {
     content: '\f067';
 }
+
+/* EE6+ specific styles. Use FA icons instead. */
+body[data-ee-version] .entry_type_add_row .icon.plus:before,
+body[data-ee-version] .entry_type_remove_row:before {
+    content: "";
+}
+
+body[data-ee-version] .entry_type_remove_row {
+    color: var(--ee-danger);
+}

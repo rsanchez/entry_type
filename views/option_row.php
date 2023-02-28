@@ -9,5 +9,5 @@
                 </label>
                 <?php endforeach; ?>
             </td>
-			<td><a href="javascript:void(0);" class="entry_type_remove_row"></a></td>
+			<td><a href="javascript:void(0);" class="entry_type_remove_row "><span class="fa fa-trash"></span></a></td>
 		</tr>

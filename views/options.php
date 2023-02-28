@@ -17,7 +17,7 @@
 	<thead>
 		<tr>
 			<td colspan="4">
-				<a href="javascript:void(0);" class="btn entry_type_add_row"><i class="icon plus"></i><?=lang('add_type')?></a>
+				<a href="javascript:void(0);" class="btn button button--secondary entry_type_add_row"><i class="icon plus"></i><?=lang('add_type')?></a>
 			</td>
 		</tr>
 	</thead>

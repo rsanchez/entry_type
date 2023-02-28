@@ -2,9 +2,15 @@
 
 class Entry_type
 {
-    private $field_names = array();
+    /**
+     * @var array
+     */
+    private $field_names = [];
 
-    public function init($channel_id)
+    /**
+     * @param int $channelId
+     */
+    public function init(int $channelId)
     {
         if (ee()->session->cache('entry_type', 'display_field')) {
             return;
@@ -12,37 +18,39 @@ class Entry_type
 
         ee()->session->set_cache('entry_type', 'display_field', true);
 
-        $query = ee()->db->select('channel_fields.field_id, channel_fields.field_name')
-                                ->join('channel_field_groups_fields', 'channel_field_groups_fields.field_id = channel_fields.field_id')
-                                ->join('channels_channel_field_groups', 'channels_channel_field_groups.group_id = channel_field_groups_fields.group_id')
-                                ->where('channels_channel_field_groups.channel_id', $channel_id)
-                                ->get('channel_fields');
+        $channels = ee('Model')->get('Channel')
+            ->with('CustomFields')
+            ->filter('channel_id', $channelId)
+            ->all();
 
-        foreach ($query->result() as $row) {
-            $this->field_names[$row->field_id] = REQ === 'CP' ? 'field_id_'.$row->field_id : $row->field_name;
+        /** @var Channel $channel */
+        foreach ($channels as $channel) {
+            $customFields = $channel->getAllCustomFields();
+
+            foreach ($customFields as $customField) {
+                $this->field_names[$customField->field_id] = REQ === 'CP' ? 'field_id_'.$customField->field_id : $customField->field_name;
+            }
         }
-
-        $query->free_result();
 
         if (empty($this->field_names)) {
             return;
         }
 
         //fetch field widths/visibility from publish layout
-        $layout_group = is_numeric(ee()->input->get_post('layout_preview')) ? ee()->input->get_post('layout_preview') : ee()->session->userdata('group_id');
+        //$layout_group = is_numeric(ee()->input->get_post('layout_preview')) ? ee()->input->get_post('layout_preview') : ee()->session->userdata('group_id');
 
         ee()->load->model('layout_model');
 
         $layout_info = ee()->layout_model->get_layout_settings(array(
             'site_id' => ee()->config->item('site_id'),
-            'channel_id' => $channel_id,
+            'channel_id' => $channelId,
             //'member_group' => $layout_group,
         ));
 
-        $invisible = array();
+        $invisible = [];
 
         if (!empty($layout_info)) {
-            foreach ($layout_info as $tab => $tab_fields) {
+            foreach ($layout_info as $tab_fields) {
                 foreach ($tab_fields as $field_name => $field_options) {
                     if (strncmp($field_name, 'field_id_', 9) === 0) {
                         $field_id = substr($field_name, 9);
@@ -69,13 +77,18 @@ class Entry_type
         ee()->javascript->output('EntryType.setInvisible('.json_encode($invisible).');');
     }
 
-    public function add_field($field_name, $type_options)
+    /**
+     * @param string $field_name
+     * @param array $type_options
+     * @return mixed
+     */
+    public function add_field($field_name, array $type_options = [])
     {
-        $fields = array();
+        $fields = [];
 
         foreach ($type_options as $value => $row) {
             foreach (explode('|', $value) as $val) {
-                $fields[$val] = (isset($row['hide_fields'])) ? $row['hide_fields'] : array();
+                $fields[$val] = (isset($row['hide_fields'])) ? $row['hide_fields'] : [];
             }
         }
 
@@ -87,6 +100,7 @@ class Entry_type
             return $this->{'add_'.$field_name.'_field'}($fields);
         }
 
+        // @todo - what is this used for?
         $callback = '';
 
         if (method_exists($this, 'callback_'.$field_name)) {
@@ -96,15 +110,20 @@ class Entry_type
         ee()->javascript->output('EntryType.addField('.json_encode($field_name).', '.json_encode($fields).');');
     }
 
+    /**
+     * @param int  $group_id
+     * @param bool $exclude_field_id
+     * @return array
+     */
     public function fields($group_id, $exclude_field_id = false)
     {
         $all_fields = $this->all_fields();
 
         if (!isset($all_fields[$group_id])) {
-            return array();
+            return [];
         }
 
-        $fields = array();
+        $fields = [];
 
         foreach ($all_fields[$group_id] as $field_id => $field) {
             $fields[$field_id] = $field['field_label'];
@@ -128,17 +147,18 @@ class Entry_type
         static $cache;
 
         if (is_null($cache)) {
+            /** @var CI_DB_result $query */
             $query = ee()->db->select('field_id, field_name, field_label, field_groups.group_id, group_name')
                 ->where('channel_fields.site_id', ee()->config->item('site_id'))
                 ->join('field_groups', 'field_groups.group_id = channel_fields.group_id')
                 ->order_by('field_groups.group_id, field_order')
                 ->get('channel_fields');
 
-            $cache = array();
+            $cache = [];
 
             foreach ($query->result_array() as $row) {
                 if (!isset($cache[$row['group_id']])) {
-                    $cache[$row['group_id']] = array();
+                    $cache[$row['group_id']] = [];
                 }
 
                 $cache[$row['group_id']][$row['field_id']] = $row;
@@ -150,20 +170,18 @@ class Entry_type
         return $cache;
     }
 
-    public function field_settings($field_group = false, $settings = array(), $field_id = false, $key = false)
+    public function field_settings($field_group = false, $settings = [], $field_id = false, $key = false)
     {
         ee()->lang->loadfile('entry_type', 'entry_type');
-
-        ee()->load->helper(array('array', 'html'));
-
-        ee()->cp->add_js_script(array('ui' => array('sortable')));
+        ee()->load->helper(['array', 'html']);
+        ee()->cp->add_js_script(['ui' => ['sortable']]);
 
         if ($field_group) {
             $vars['fields'] = $this->fields($field_group, $field_id);
         } else {
-            $vars['fields'] = array();
+            $vars['fields'] = [];
 
-            foreach ($this->all_fields() as $group_id => $fields) {
+            foreach ($this->all_fields() as $fields) {
                 foreach ($fields as $field_id => $field) {
                     $vars['fields'][$field_id] = $field['field_label'];
                 }
@@ -171,16 +189,16 @@ class Entry_type
         }
 
         if (empty($settings['type_options'])) {
-            $vars['type_options'] = array(
-                '' => array(
-                    'hide_fields' => array(),
+            $vars['type_options'] = [
+                '' => [
+                    'hide_fields' => [],
                     'label' => '',
-                ),
-            );
+                ],
+            ];
         } else {
             foreach ($settings['type_options'] as $value => $option) {
                 if (!isset($option['hide_fields'])) {
-                    $settings['type_options'][$value]['hide_fields'] = array();
+                    $settings['type_options'][$value]['hide_fields'] = [];
                 }
 
                 if (!isset($option['label'])) {
@@ -195,10 +213,9 @@ class Entry_type
 
         $options_view = $key ? 'options_ext' : 'options';
 
-        $row_template = preg_replace('/[\r\n\t]/', '', ee()->load->view($row_view, array('key' => $key, 'i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => array(), 'fields' => $vars['fields']), true));
+        $row_template = preg_replace('/[\r\n\t]/', '', ee()->load->view($row_view, array('key' => $key, 'i' => '{{INDEX}}', 'value' => '', 'label' => '', 'hide_fields' => [], 'fields' => $vars['fields']), true));
 
         ee()->cp->load_package_js('EntryTypeFieldSettings');
-
         ee()->load->library('javascript');
 
         ee()->javascript->output('
